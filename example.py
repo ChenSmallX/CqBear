@@ -1,6 +1,7 @@
 # -*- coding=utf-8 -*-
 
-from cqbear import CqBear
+from cqbear.bear import CqBear
+from app import *
 
 bear = CqBear(
     addr="127.0.0.1",
