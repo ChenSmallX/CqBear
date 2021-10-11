@@ -404,4 +404,251 @@ class SetGroupPortrait(Roar):
         self['cache'] = 1 if use_cache else 0
         return self
 
-# TODO: 从 获取群系统消息 继续开始添加 Roar
+
+class GetGroupSystemMessage(Roar):
+    _extend_url = "get_group_system_msg"
+
+
+class UploadGroupFile(Roar):
+    _extend_url = "upload_group_file"
+
+    def set_group_id(self, group_id: int):
+        self['group_id'] = group_id
+        return self
+
+    def set_file(self, file_path: str):
+        """本地文件路径
+
+        只能上传本地文件, 需要上传 `http` 文件的话请
+        先调用 [`download_file` API](#下载文件到缓存目录)下载"""
+        self['file'] = file_path
+        return self
+
+    def set_name(self, name: str):
+        self['name'] = name
+        return self
+
+    def set_folder(self, folder: str):
+        """在不提供 `folder` 参数的情况下默认上传到根目录"""
+        self['folder'] = folder
+        return self
+
+
+class GetGroupFileSystemInfo(Roar):
+    _extend_url = "get_group_file_system_info"
+
+    def set_group_id(self, group_id: int):
+        self['group_id'] = group_id
+        return self
+
+
+class GetGroupRootFiles(Roar):
+    _extend_url = "get_group_root_files"
+
+    def set_group_id(self, group_id: int):
+        self['group_id'] = group_id
+        return self
+
+
+class GetGroupFilesByFolder(Roar):
+    _extend_url = "get_group_files_by_folder"
+
+    def set_group_id(self, group_id: int):
+        self['group_id'] = group_id
+        return self
+
+    def set_folder_id(self, folder_id: str):
+        """TODO: 添加关于 folder id 的注释"""
+        self['folder_id'] = folder_id
+        return self
+
+
+class GetGroupFileUrl(Roar):
+    _extend_url = "get_group_file_url"
+
+    def set_group_id(self, group_id: int):
+        self['group_id'] = group_id
+        return self
+
+    def set_file_id(self, file_id: str):
+        """TODO: 添加注释"""
+        self['file_id'] = file_id
+        return self
+
+    def set_busid(self, busid: int):
+        """TODO: 添加注释"""
+        self['busid'] = busid
+        return self
+
+
+class GetStatus(Roar):
+    _extend_url = "get_status"
+
+
+class GetGroupAtallRemain(Roar):
+    _extend_url = "get_group_at_all_remain"
+
+    def set_group_id(self, group_id: int):
+        self['group_id'] = group_id
+        return self
+
+
+class GetVipInfo(Roar):
+    _extend_url = "_get_vip_info"
+
+    def set_user_id(self, user_id: int):
+        self['user_id'] = user_id
+        return self
+
+
+class SendGroupNotice(Roar):
+    _extend_url = "_send_group_notice"
+
+    def set_group_id(self, group_id: int):
+        self['group_id'] = group_id
+        return self
+
+    def set_content(self, content: str):
+        self['content'] = content
+        return self
+
+
+class ReloadEventFilter(Roar):
+    _extend_url = "reload_event_filter"
+
+    def set_file(self, file: str):
+        """事件过滤器文件"""
+        self['file'] = file
+        return self
+
+
+class DownloadFile(Roar):
+    _extend_url = "download_file"
+
+    def set_url(self, url: str):
+        self['url'] = url
+        return self
+
+    def set_thread_count(self, count: int):
+        """下载线程数"""
+        self['count'] = count
+        return self
+
+    def set_headers(self, headers):
+        """自定义请求头
+
+        str: "User-Agent=YOUR_UA\\r\\nReferer=https://www.baidu.com"
+
+        或者
+
+        list: [
+            "User-Agent=YOUR_UA",
+            "Referer=https://www.baidu.com"
+        ]
+
+        """
+        self['headers'] = headers
+        return self
+
+
+class GetOnlineClient(Roar):
+    """获取当前账号在线客户端列表
+
+    ---
+
+    相应数据：
+
+    | 字段        | 类型       | 说明            |
+    | ---------- | ---------- | ------------ |
+    | `clients`    | []Device       |  在线客户端列表  |
+
+    Device:
+
+    | 字段        | 类型       | 说明            |
+    | ---------- | ---------- | ------------ |
+    | `app_id`    | int64       |  客户端ID |
+    | `device_name`    | string       |  设备名称 |
+    | `device_kind`    | string       |  设备类型 |
+    """
+    _extend_url = "get_online_clients"
+
+    def set_no_cache(self, no_cache: bool):
+        """是否无视缓存"""
+
+        self['no_cache'] = no_cache
+        return self
+
+
+class GetGroupMsgHistory(Roar):
+    _extend_url = "get_group_msg_history"
+
+    def set_message_seq(self, message_seq: int):
+        """ 起始消息序号, 可通过 `get_msg` 获得"""
+        self['message_seq'] = message_seq
+        return self
+
+    def set_group_id(self, group_id: int):
+        self['group_id'] = group_id
+        return self
+
+
+class SetEssenceMessage(Roar):
+    _extend_url = "set_essence_msg"
+
+    def set_message_id(self, message_id: int):
+        self['message_id'] = message_id
+        return self
+
+
+class DeleteEssenceMessage(Roar):
+    _extend_url = "delete_essence_msg"
+
+    def set_message_id(self, message_id: int):
+        self['message_id'] = message_id
+        return self
+
+
+class GetEssenceMessageList(Roar):
+    """检查链接安全性
+
+    ---
+
+    响应数据:
+
+    | 字段        | 类型       | 说明            |
+    | ---------- | ---------- | ------------ |
+    | `level`    | int       |  安全等级 1: 安全 2: 未知 3: 危险  |
+    """
+    _extend_url = "get_essence_msg_list"
+
+    def set_group_id(self, group_id: int):
+        self['group_id'] = group_id
+        return self
+
+
+class CheckUrlSafely(Roar):
+    _extend_url = "check_url_safely"
+
+    def set_url(self, url: str):
+        self['url'] = url
+        return self
+
+
+class GetModelShow(Roar):
+    _extend_url = "_get_model_show"
+
+    def set_model(self, model: str):
+        self['model'] = model
+        return self
+
+
+class SetModelShow(Roar):
+    _extend_url = "_set_model_show"
+
+    def set_model(self, model: str):
+        self['model'] = model
+        return self
+
+    def set_model_show(self, model_show: str):
+        self['model_show'] = model_show
+        return self
