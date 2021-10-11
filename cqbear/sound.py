@@ -17,16 +17,17 @@ THIRD_TYPE 对应 sub_type，用于更加细致地细分消息类型。
 TODO:
 - [x] 添加事件
 - [x] 添加获取参数的property
-- [ ] 添加注释
+- [x] 添加注释
 """
 
 import sys
-from typing import List
+from typing import List, Optional
 
 from cqbear.util import allSubclasses
 
 
 class BaseSound(dict):
+    """消息事件基类"""
     FIRST_TYPE = None
     SECOND_TYPE = None
     THIRD_TYPE = None
@@ -54,34 +55,40 @@ class Message(BaseSound):
 
     @property
     def message_id(self) -> int:
+        """消息 ID"""
         return self.get(sys._getframe().f_code.co_name)
 
 
 class PrivateMessageSender(dict):
+    """发送人信息"""
     def __init__(self, data: dict):
         super(PrivateMessageSender, self).__init__(data)
 
     @property
     def user_id(self) -> int:
+        """发送者 QQ 号"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def nickname(self) -> str:
+        """昵称"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def sex(self) -> str:
         """
-        male or female or unknown
+        性别, `male` 或 `female` 或 `unknown`
         """
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def age(self) -> int:
+        """年龄"""
         return self.get(sys._getframe().f_code.co_name)
 
 
 class PrivateMessage(Message):
+    """私聊消息"""
     SECOND_TYPE = "private"
 
     def __init__(self, data: dict):
@@ -109,31 +116,44 @@ class PrivateMessage(Message):
 
     @property
     def temp_source(self) -> int:
+        """临时会话来源
+
+        可从 `PrivateMessage.TEMP_SOURCE_TYPE` 中获取枚举"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def user_id(self) -> int:
+        """发送者 QQ 号"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def message(self) -> str:
+        """消息内容"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def raw_message(self) -> str:
+        """原始消息内容"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def font(self) -> int:
+        """字体"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def sender(self) -> PrivateMessageSender:
+        """发送人信息
+
+        `sender` 中的各字段是尽最大努力提供的,
+        不保证每个字段都一定存在,
+        也不保证存在的字段都是完全正确的 ( 缓存可能过期 )"""
         return PrivateMessageSender(
             self.get(sys._getframe().f_code.co_name, {}))
 
 
 class FriendPrivateMessage(PrivateMessage):
+    """私聊消息：好友私聊消息"""
     THIRD_TYPE = "friend"
 
     def __init__(self, data: dict):
@@ -141,6 +161,7 @@ class FriendPrivateMessage(PrivateMessage):
 
 
 class GroupPrivateMessage(PrivateMessage):
+    """私聊消息：群临时会话 私聊消息"""
     THIRD_TYPE = "group"
 
     def __init__(self, data: dict):
@@ -148,6 +169,7 @@ class GroupPrivateMessage(PrivateMessage):
 
 
 class GroupSelfPrivateMessage(PrivateMessage):
+    """私聊消息：群中自身发送私聊消息"""
     THIRD_TYPE = "group_self"
 
     def __init__(self, data: dict):
@@ -155,6 +177,7 @@ class GroupSelfPrivateMessage(PrivateMessage):
 
 
 class OtherPrivateMessage(PrivateMessage):
+    """私聊消息：好友私聊消息、群临时会话、群中自身发送之外的其他私聊消息"""
     THIRD_TYPE = "other"
 
     def __init__(self, data: dict):
@@ -162,67 +185,83 @@ class OtherPrivateMessage(PrivateMessage):
 
 
 class GroupMessageAnonymous(dict):
+    """GroupMessage 中的 anonymous
+
+    注：还未实现针对匿名者的禁言 Roar"""
     def __init__(self, data: dict):
         super(GroupMessageAnonymous, self).__init__(data)
 
     @property
     def id(self) -> int:
+        """匿名用户 ID"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def name(self) -> str:
+        """匿名用户名称"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def flag(self) -> str:
+        """匿名用户 flag, 在调用禁言 API 时需要传入"""
         return self.get(sys._getframe().f_code.co_name)
 
 
 class GroupMessageSender(dict):
+    """GroupMessage 中的 sender"""
     def __init__(self, data: dict):
         super(GroupMessageSender, self).__init__(data)
 
     @property
     def user_id(self) -> int:
+        """发送者 QQ 号"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def nickname(self) -> str:
+        """昵称"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def card(self) -> str:
+        """群名片/备注"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def sex(self) -> str:
         """
-        male or female or unknown
+        性别, `male` 或 `female` 或 `unknown`
         """
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def age(self) -> int:
+        """年龄"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def area(self) -> str:
+        """地区"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def level(self) -> str:
+        """成员等级"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def role(self) -> str:
+        """角色, `owner` 或 `admin` 或 `member`"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def title(self) -> str:
+        """专属头衔"""
         return self.get(sys._getframe().f_code.co_name)
 
 
 class GroupMessage(Message):
+    """群消息"""
     SECOND_TYPE = "group"
 
     def __init__(self, data: dict):
@@ -230,35 +269,50 @@ class GroupMessage(Message):
 
     @property
     def group_id(self) -> int:
+        """群号"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def user_id(self) -> int:
+        """发送者 QQ 号"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
-    def anonymous(self) -> GroupMessageAnonymous:
-        return GroupMessageAnonymous(
-            self.get(sys._getframe().f_code.co_name, {}))
+    def anonymous(self) -> Optional[GroupMessageAnonymous]:
+        """匿名信息, 如果不是匿名消息则为 None"""
+        anony = self.get(sys._getframe().f_code.co_name, {})
+        if anony is not None:
+            return GroupMessageAnonymous(anony)
+        return None
 
     @property
     def message(self) -> str:
+        """消息内容"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def raw_message(self) -> str:
+        """原始消息内容"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def font(self) -> int:
+        """字体"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def sender(self) -> GroupMessageSender:
+        """发送人信息
+
+        `sender` 中的各字段是尽最大努力提供的,
+        不保证每个字段都一定存在,
+        也不保证存在的字段都是完全正确的 ( 缓存可能过期 ) 。
+        尤其对于匿名消息, 此字段不具有参考价值。"""
         return GroupMessageSender(self.get(sys._getframe().f_code.co_name, {}))
 
 
 class NormalGroupMessage(GroupMessage):
+    """群消息：正常群消息(非匿名群成员发布的)"""
     THIRD_TYPE = "normal"
 
     def __init__(self, data: dict):
@@ -266,6 +320,7 @@ class NormalGroupMessage(GroupMessage):
 
 
 class AnonymousGroupMessage(GroupMessage):
+    """群消息：匿名群成员发布的群消息"""
     THIRD_TYPE = "anonymous"
 
     def __init__(self, data: dict):
@@ -273,6 +328,7 @@ class AnonymousGroupMessage(GroupMessage):
 
 
 class NoticeGroupMessage(GroupMessage):
+    """群消息：系统提示群消息"""
     THIRD_TYPE = "notice"
 
     def __init__(self, data: dict):
@@ -287,27 +343,34 @@ class Notice(BaseSound):
 
 
 class GroupUploadNoticeFile(dict):
+    """GroupUploadNotice 中的 file"""
     def __init__(self, data: dict):
         super(GroupUploadNoticeFile, self).__init__(data)
 
     @property
     def id(self) -> str:
+        """文件 ID"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def name(self) -> str:
+        """文件名"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def size(self) -> int:
+        """文件大小 ( 字节数 )"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def busid(self) -> int:
+        """busid
+        cqbear.roar.GetGroupFileUrl 等关于群文件的 roar 会需要填入"""
         return self.get(sys._getframe().f_code.co_name)
 
 
 class GroupUploadNotice(Notice):
+    """群文件上传"""
     SECOND_TYPE = "group_upload"
 
     def __init__(self, data: dict):
@@ -315,18 +378,22 @@ class GroupUploadNotice(Notice):
 
     @property
     def group_id(self) -> int:
+        """群号"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def user_id(self) -> int:
+        """发送者 QQ 号"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def file(self) -> GroupUploadNoticeFile:
+        """文件信息"""
         return GroupUploadNoticeFile(self.get(sys._getframe().f_code.co_name))
 
 
 class GroupAdminNotice(Notice):
+    """群管理员变动"""
     SECOND_TYPE = "group_admin"
 
     def __init__(self, data: dict):
@@ -334,14 +401,17 @@ class GroupAdminNotice(Notice):
 
     @property
     def group_id(self) -> int:
+        """群号"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def user_id(self) -> int:
+        """管理员 QQ 号"""
         return self.get(sys._getframe().f_code.co_name)
 
 
 class SetGroupAdminNotice(GroupAdminNotice):
+    """群管理员变动：用户被设置为群管理员"""
     THIRD_TYPE = "set"
 
     def __init__(self, data: dict):
@@ -349,6 +419,7 @@ class SetGroupAdminNotice(GroupAdminNotice):
 
 
 class UnsetGroupAdminNotice(GroupAdminNotice):
+    """群管理员变动：用户被取消群管理员"""
     THIRD_TYPE = "unset"
 
     def __init__(self, data: dict):
@@ -356,6 +427,7 @@ class UnsetGroupAdminNotice(GroupAdminNotice):
 
 
 class GroupDecreaseNotice(Notice):
+    """群成员减少"""
     SECOND_TYPE = "group_decrease"
 
     def __init__(self, data: dict):
@@ -363,18 +435,22 @@ class GroupDecreaseNotice(Notice):
 
     @property
     def group_id(self) -> int:
+        """群号"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def operator_id(self) -> int:
+        """操作者 QQ 号 ( 如果是主动退群, 则和 `user_id` 相同 )"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def user_id(self) -> int:
+        """离开者 QQ 号"""
         return self.get(sys._getframe().f_code.co_name)
 
 
 class LeaveGroupDecreaseNotice(GroupDecreaseNotice):
+    """退群：用户主动退群"""
     THIRD_TYPE = "leave"
 
     def __init__(self, data: dict):
@@ -382,6 +458,7 @@ class LeaveGroupDecreaseNotice(GroupDecreaseNotice):
 
 
 class KickGroupDecreaseNotice(GroupDecreaseNotice):
+    """退群：成员被踢出群"""
     THIRD_TYPE = "kick"
 
     def __init__(self, data: dict):
@@ -389,6 +466,7 @@ class KickGroupDecreaseNotice(GroupDecreaseNotice):
 
 
 class KickMeGroupDecreaseNotice(GroupDecreaseNotice):
+    """退群：登录号被踢出群"""
     THIRD_TYPE = "kick_me"
 
     def __init__(self, data: dict):
@@ -396,6 +474,7 @@ class KickMeGroupDecreaseNotice(GroupDecreaseNotice):
 
 
 class GroupIncreaseNotice(Notice):
+    """群成员增加"""
     SECOND_TYPE = "group_increase"
 
     def __init__(self, data: dict):
@@ -403,18 +482,22 @@ class GroupIncreaseNotice(Notice):
 
     @property
     def group_id(self) -> int:
+        """群号"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def operator_id(self) -> int:
+        """操作者 QQ 号"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def user_id(self) -> int:
+        """加入者 QQ 号"""
         return self.get(sys._getframe().f_code.co_name)
 
 
 class ApproveGroupIncreaseNotice(GroupIncreaseNotice):
+    """加群：管理员同意后加入"""
     THIRD_TYPE = "approve"
 
     def __init__(self, data: dict):
@@ -422,6 +505,7 @@ class ApproveGroupIncreaseNotice(GroupIncreaseNotice):
 
 
 class InviteGroupIncreaseNotice(GroupIncreaseNotice):
+    """加群：被管理员邀请入群"""
     THIRD_TYPE = "invite"
 
     def __init__(self, data: dict):
@@ -429,6 +513,7 @@ class InviteGroupIncreaseNotice(GroupIncreaseNotice):
 
 
 class GroupBanNotice(Notice):
+    """群禁言事件"""
     SECOND_TYPE = "group_ban"
 
     def __init__(self, data: dict):
@@ -436,22 +521,50 @@ class GroupBanNotice(Notice):
 
     @property
     def group_id(self) -> int:
+        """群号"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def operator_id(self) -> int:
+        """操作者 QQ 号"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def user_id(self) -> int:
+        """被禁言 QQ 号"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def duration(self) -> int:
+        """禁言时长, 单位秒"""
         return self.get(sys._getframe().f_code.co_name)
+
+    @property
+    def is_ban(self) -> bool:
+        """True: 禁言 / False: 解除禁言"""
+        if self.get('sub_type') == 'ban':
+            return True
+        return False
+
+
+class EnableGroupBanNotice(Notice):
+    """群禁言: 设置禁言"""
+    THIRD_TYPE = "ban"
+
+    def __init__(self, data: dict):
+        super(GroupBanNotice, self).__init__(data)
+
+
+class DisableGroupBanNotice(Notice):
+    """群禁言: 解除禁言"""
+    THIRD_TYPE = "lift_ban"
+
+    def __init__(self, data: dict):
+        super(GroupBanNotice, self).__init__(data)
 
 
 class FriendAddNotice(Notice):
+    """好友添加"""
     SECOND_TYPE = "friend_add"
 
     def __init__(self, data: dict):
@@ -459,10 +572,12 @@ class FriendAddNotice(Notice):
 
     @property
     def user_id(self) -> int:
+        """新添加好友 QQ 号"""
         return self.get(sys._getframe().f_code.co_name)
 
 
 class GroupRecallNotice(Notice):
+    """群消息撤回"""
     SECOND_TYPE = "group_recall"
 
     def __init__(self, data: dict):
@@ -470,22 +585,27 @@ class GroupRecallNotice(Notice):
 
     @property
     def group_id(self) -> int:
+        """群号"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def user_id(self) -> int:
+        """消息发送者 QQ 号"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def operator_id(self) -> int:
+        """操作者 QQ 号"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def message_id(self) -> int:
+        """被撤回的消息 ID"""
         return self.get(sys._getframe().f_code.co_name)
 
 
 class FriendRecallNotice(Notice):
+    """好友消息撤回"""
     SECOND_TYPE = "friend_recall"
 
     def __init__(self, data: dict):
@@ -493,10 +613,12 @@ class FriendRecallNotice(Notice):
 
     @property
     def user_id(self) -> int:
+        """user_id"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def message_id(self) -> int:
+        """message_id"""
         return self.get(sys._getframe().f_code.co_name)
 
 
@@ -508,6 +630,9 @@ class Notify(Notice):
 
 
 class PokeNotify(Notify):
+    """戳一戳
+
+    分为 好友戳一戳 以及 群内戳一戳"""
     THIRD_TYPE = "poke"
 
     def __init__(self, data: dict):
@@ -515,23 +640,27 @@ class PokeNotify(Notify):
 
     @property
     def sender_id(self) -> int:
+        """发送者 QQ 号 群内戳一戳事件不存在此属性"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def user_id(self) -> int:
+        """发送者 QQ 号"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def target_id(self) -> int:
+        """被戳者 QQ 号"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def group_id(self) -> int:
-        """TODO: 添加关于戳一戳注释"""
+        """群号 好友戳一戳事件不存在此属性"""
         return self.get(sys._getframe().f_code.co_name)
 
 
 class GroupLuckyKingNotify(Notify):
+    """群红包运气王"""
     THIRD_TYPE = "lucky_king"
 
     def __init__(self, data: dict):
@@ -539,14 +668,17 @@ class GroupLuckyKingNotify(Notify):
 
     @property
     def user_id(self) -> int:
+        """红包发送者id"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def target_id(self) -> int:
+        """运气王id"""
         return self.get(sys._getframe().f_code.co_name)
 
 
 class GroupMemberHonorChangeNotify(Notify):
+    """群成员荣誉变更提示"""
     THIRD_TYPE = "honor"
 
     def __init__(self, data: dict):
@@ -554,14 +686,25 @@ class GroupMemberHonorChangeNotify(Notify):
 
     @property
     def user_id(self) -> int:
+        """成员id"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def honor_type(self) -> str:
+        """荣誉类型
+
+        `talkative`龙王
+        `performer`群聊之火
+        `emotion`快乐源泉"""
         return self.get(sys._getframe().f_code.co_name)
 
 
 class GroupCardNotice(Notice):
+    """群成员名片更新
+
+    此事件不保证时效性, 仅在收到消息时校验卡片
+
+    当名片为空时 `card_xx` 字段为空字符串, 并不是昵称"""
     SECOND_TYPE = "group_card"
 
     def __init__(self, data: dict):
@@ -569,40 +712,48 @@ class GroupCardNotice(Notice):
 
     @property
     def group_id(self) -> int:
+        """群号"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def user_id(self) -> int:
+        """成员id"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def card_new(self) -> str:
+        """新名片"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def card_old(self) -> str:
+        """旧名片"""
         return self.get(sys._getframe().f_code.co_name)
 
 
 class OfflineFileNoticeFile(dict):
-
+    """OfflineFileNotice 中的 file"""
     def __init__(self, data: dict):
         super(OfflineFileNoticeFile, self).__init__(data)
 
     @property
     def name(self) -> str:
+        """文件名"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def size(self) -> int:
+        """文件大小"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def url(self) -> str:
+        """下载链接"""
         return self.get(sys._getframe().f_code.co_name)
 
 
 class OfflineFileNotice(Notice):
+    """接收到离线文件"""
     SECOND_TYPE = "offline_file"
 
     def __init__(self, data: dict):
@@ -610,28 +761,33 @@ class OfflineFileNotice(Notice):
 
     @property
     def user_id(self) -> int:
+        """发送者id"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def file(self) -> OfflineFileNoticeFile:
+        """文件数据"""
         return OfflineFileNoticeFile(self.get(sys._getframe().f_code.co_name))
 
 
 class ClientStatusNoticeDevice(dict):
-
+    """ClientStatusNotice 中的 device"""
     def __init__(self, data: dict):
         super(ClientStatusNoticeDevice, self).__init__(data)
 
     @property
     def app_id(self) -> int:
+        """客户端ID"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def device_name(self) -> str:
+        """设备名称"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def device_kind(self) -> str:
+        """设备类型"""
         return self.get(sys._getframe().f_code.co_name)
 
 
@@ -643,10 +799,12 @@ class ClientStatusNotice(Notice):
 
     @property
     def online(self) -> bool:
+        """online"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
-    def client(self) -> List(ClientStatusNoticeDevice):
+    def client(self) -> List[ClientStatusNoticeDevice]:
+        """客户端信息"""
         clients = list()
         for dev in self.get(sys._getframe().f_code.co_name):
             clients.append(ClientStatusNoticeDevice(dev))
@@ -654,6 +812,7 @@ class ClientStatusNotice(Notice):
 
 
 class EssenceNotice(Notice):
+    """精华消息"""
     SECOND_TYPE = "essence"
 
     def __init__(self, data: dict):
@@ -661,18 +820,22 @@ class EssenceNotice(Notice):
 
     @property
     def sender_id(self) -> int:
+        """消息发送者ID"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def operator_id(self) -> int:
+        """操作者ID"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def message_id(self) -> int:
+        """消息ID"""
         return self.get(sys._getframe().f_code.co_name)
 
 
 class AddEssenceNotice(EssenceNotice):
+    """添加精华消息"""
     THIRD_TYPE = "add"
 
     def __init__(self, data: dict):
@@ -680,6 +843,7 @@ class AddEssenceNotice(EssenceNotice):
 
 
 class DeleteEssenceNotice(EssenceNotice):
+    """删除精华消息"""
     THIRD_TYPE = "delete"
 
     def __init__(self, data: dict):
@@ -694,7 +858,10 @@ class Request(BaseSound):
 
 
 class FriendRequest(Request):
-    """使用 cqbear.sentence.SetFriendAddRequest 处理此事件"""
+    """加好友请求
+
+    使用 `cqbear.roar.SetFriendAddRequest` 处理此事件
+    (需要传入 `FriendRequest.flag` 参数)"""
     SECOND_TYPE = "friend"
 
     def __init__(self, data: dict):
@@ -702,18 +869,25 @@ class FriendRequest(Request):
 
     @property
     def user_id(self) -> int:
+        """发送请求的 QQ 号"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def comment(self) -> int:
+        """验证信息"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def flag(self) -> str:
+        """请求 flag, 在调用处理请求的 API 时需要传入"""
         return self.get(sys._getframe().f_code.co_name)
 
 
 class GroupRequest(Request):
+    """加群请求/邀请
+
+    使用 `cqbear.roar.SetGroupAddRequest` 处理此事件
+    (需要传入 `GroupRequest.flag` 参数)"""
     SECOND_TYPE = "group"
 
     def __init__(self, data: dict):
@@ -721,22 +895,27 @@ class GroupRequest(Request):
 
     @property
     def group_id(self) -> int:
+        """群号"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def user_id(self) -> int:
+        """发起请求的 QQ 号"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def comment(self) -> str:
+        """验证信息"""
         return self.get(sys._getframe().f_code.co_name)
 
     @property
     def flag(self) -> str:
+        """请求 flag, 在调用处理请求的 API 时需要传入"""
         return self.get(sys._getframe().f_code.co_name)
 
 
 class AddGroupRequest(Request):
+    """加群请求"""
     THIRD_TYPE = "add"
 
     def __init__(self, data: dict):
@@ -744,6 +923,7 @@ class AddGroupRequest(Request):
 
 
 class InviteGroupRequest(Request):
+    """邀请加群请求"""
     THIRD_TYPE = "invite"
 
     def __init__(self, data: dict):
