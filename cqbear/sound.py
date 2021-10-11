@@ -93,6 +93,7 @@ class PrivateMessage(Message):
 
     def __init__(self, data: dict):
         super(PrivateMessage, self).__init__(data)
+        self._sender = None
 
     class TEMP_SOURCE_TYPE():
         GROUP = 0
@@ -148,8 +149,10 @@ class PrivateMessage(Message):
         `sender` 中的各字段是尽最大努力提供的,
         不保证每个字段都一定存在,
         也不保证存在的字段都是完全正确的 ( 缓存可能过期 )"""
-        return PrivateMessageSender(
-            self.get(sys._getframe().f_code.co_name, {}))
+        if self._sender is None:
+            self._sender = PrivateMessageSender(
+                self.get(sys._getframe().f_code.co_name, {}))
+        return self._sender
 
 
 class FriendPrivateMessage(PrivateMessage):
@@ -266,6 +269,9 @@ class GroupMessage(Message):
 
     def __init__(self, data: dict):
         super(GroupMessage, self).__init__(data)
+        self._sender = None
+        self._is_anony = None
+        self._anony = None
 
     @property
     def group_id(self) -> int:
@@ -280,10 +286,14 @@ class GroupMessage(Message):
     @property
     def anonymous(self) -> Optional[GroupMessageAnonymous]:
         """匿名信息, 如果不是匿名消息则为 None"""
-        anony = self.get(sys._getframe().f_code.co_name, {})
-        if anony is not None:
-            return GroupMessageAnonymous(anony)
-        return None
+        if self._is_anony is None:
+            anony = self.get(sys._getframe().f_code.co_name, {})
+            if anony is not None:
+                self._anony = GroupMessageAnonymous(anony)
+                self._is_anony = True
+            else:
+                self._is_anony = False
+        return self._anony
 
     @property
     def message(self) -> str:
@@ -308,7 +318,10 @@ class GroupMessage(Message):
         不保证每个字段都一定存在,
         也不保证存在的字段都是完全正确的 ( 缓存可能过期 ) 。
         尤其对于匿名消息, 此字段不具有参考价值。"""
-        return GroupMessageSender(self.get(sys._getframe().f_code.co_name, {}))
+        if self._sender is None:
+            self._sender = GroupMessageSender(
+                self.get(sys._getframe().f_code.co_name, {}))
+        return self._sender
 
 
 class NormalGroupMessage(GroupMessage):
@@ -375,6 +388,7 @@ class GroupUploadNotice(Notice):
 
     def __init__(self, data: dict):
         super(GroupUploadNotice, self).__init__(data)
+        self._file = None
 
     @property
     def group_id(self) -> int:
@@ -389,7 +403,10 @@ class GroupUploadNotice(Notice):
     @property
     def file(self) -> GroupUploadNoticeFile:
         """文件信息"""
-        return GroupUploadNoticeFile(self.get(sys._getframe().f_code.co_name))
+        if self._file is None:
+            self._file = GroupUploadNoticeFile(
+                self.get(sys._getframe().f_code.co_name))
+        return self._file
 
 
 class GroupAdminNotice(Notice):
@@ -758,6 +775,7 @@ class OfflineFileNotice(Notice):
 
     def __init__(self, data: dict):
         super(OfflineFileNotice, self).__init__(data)
+        self._file = None
 
     @property
     def user_id(self) -> int:
@@ -767,7 +785,10 @@ class OfflineFileNotice(Notice):
     @property
     def file(self) -> OfflineFileNoticeFile:
         """文件数据"""
-        return OfflineFileNoticeFile(self.get(sys._getframe().f_code.co_name))
+        if self._file is None:
+            self._file = OfflineFileNoticeFile(
+                self.get(sys._getframe().f_code.co_name))
+        return self._file
 
 
 class ClientStatusNoticeDevice(dict):
@@ -796,6 +817,7 @@ class ClientStatusNotice(Notice):
 
     def __init__(self, data: dict):
         super(ClientStatusNotice, self).__init__(data)
+        self._clients = None
 
     @property
     def online(self) -> bool:
@@ -805,10 +827,12 @@ class ClientStatusNotice(Notice):
     @property
     def client(self) -> List[ClientStatusNoticeDevice]:
         """客户端信息"""
-        clients = list()
-        for dev in self.get(sys._getframe().f_code.co_name):
-            clients.append(ClientStatusNoticeDevice(dev))
-        return clients
+        if self._clients is None:
+            clients = list()
+            for dev in self.get(sys._getframe().f_code.co_name):
+                clients.append(ClientStatusNoticeDevice(dev))
+            self._clients = clients
+        return self._clients
 
 
 class EssenceNotice(Notice):
