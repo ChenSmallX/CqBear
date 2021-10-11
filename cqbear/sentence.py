@@ -4,6 +4,7 @@
 """
 
 import json
+from typing import Union
 
 from cqbear.util import allSubclasses
 
@@ -29,17 +30,25 @@ class CqCode(dict):
 
 
 class Face(CqCode):
+    """QQ 表情"""
     _type = "face"
 
     def set_face_by_id(self, id: int):
+        """QQ 表情 ID"""
         self['id'] = id
         return self
 
 
+# TODO: 语音 type==record
+# TODO: 短视频 type==video
+
+
 class At(CqCode):
+    """@某人"""
     _type = "at"
 
-    def set_user_id(self, user_id: int):
+    def set_user_id(self, user_id: Union[int, str]):
+        """@的 QQ 号, `all` 表示全体成员"""
         self['qq'] = user_id
         return self
 
@@ -50,40 +59,50 @@ class At(CqCode):
 
 
 class ShareLink(CqCode):
+    """链接分享"""
     _type = "share"
 
     def set_url(self, url: str):
+        """URL"""
         self['url'] = url
         return self
 
     def set_title(self, title: str):
+        """标题"""
         self['title'] = title
         return self
 
     def set_content(self, content: str):
+        """发送时可选, 内容描述"""
         self['content'] = content
         return self
 
     def set_image(self, image_url: str):
+        """发送时可选, 图片 URL"""
         self['image'] = image_url
         return self
 
 
 class SharePlatformMusic(CqCode):
+    """音乐分享：三大平台平台"""
     _type = "music"
 
     def set_source(self, source: str):
-        """'qq', '163', 'xm'"""
+        """'qq', '163', 'xm'
+
+        分别表示使用 QQ 音乐、网易云音乐、虾米音乐"""
         assert (source in ['qq', '163', 'xm'])
         self['type'] = source
         return self
 
     def set_music_id(self, music_id: int):
+        """歌曲 ID"""
         self["id"] = music_id
         return self
 
 
 class ShareCustomMusic(CqCode):
+    """音乐分享：自定义链接"""
     _type = "music"
 
     def __init__(self):
@@ -101,22 +120,27 @@ class ShareCustomMusic(CqCode):
         return self
 
     def set_title(self, title: str):
+        """标题"""
         self['title'] = title
         return self
 
     def set_content(self, content: str):
+        """发送时可选, 内容描述"""
         self['content'] = content
         return self
 
     def set_image_url(self, image_url: str):
+        """发送时可选, 图片 URL"""
         self['image'] = image_url
         return self
 
 
 class Image(CqCode):
+    """图片"""
     _type = "image"
 
     def set_file_path(self, file_path: str):
+        """图片文件名"""
         self['file'] = file_path
         return self
 
@@ -127,6 +151,7 @@ class Image(CqCode):
         return self
 
     def set_url(self, url: str):
+        """图片 URL"""
         self['url'] = url
         return self
 
@@ -164,6 +189,7 @@ class Image(CqCode):
 
 
 class Reply(CqCode):
+    """回复"""
     _type = "reply"
 
     def set_id(self, id: int):
@@ -199,15 +225,20 @@ class Reply(CqCode):
         return self
 
     def set_seq(self, seq: int):
-        """起始消息序号, 可通过 `get_msg` 获得"""
+        """起始消息序号, 可通过 `cqbear.roar.GetMessage` 获得"""
         self['seq'] = seq
         return self
 
 
+# TODO: 红包 redbag
+
+
 class Poke(CqCode):
+    """戳一戳"""
     _type = "poke"
 
     def set_user_id(self, user_id: int):
+        """需要戳的成员"""
         self['qq'] = user_id
         return self
 
@@ -215,12 +246,25 @@ class Poke(CqCode):
 Chuo1Chuo = Poke
 
 
+# TODO: 礼物 gift
+
+
 class ForwardRecive(CqCode):
+    """合并转发（收）
+
+    需要通过 `cqbear.roar.GetForwardMessage` 获取转发的具体内容"""
     _type = "forward"
+
+    def set_id(self, id: str):
+        """合并转发ID
+        """
+        self['id'] = id
+        return self
 
 
 class ForwardSend(CqCode):
-    """
+    """合并转发（发）
+
     使用 `cqbear.roar.SendGroupForwardMessage` 类承接此类实例
 
     `sgfm = SendGroupForwardMessage().add_message(ForwardSend())`
@@ -259,6 +303,7 @@ class ForwardSend(CqCode):
 
 
 class Xml(CqCode):
+    """XML 消息"""
     _type = "xml"
 
     def set_xml_data(self, data: str):
@@ -267,27 +312,51 @@ class Xml(CqCode):
         return self
 
     def set_resid(self, resid: int):
+        """可以不填"""
         self['resid'] = resid
         return self
 
 
 class Json(CqCode):
+    """JSON 消息"""
     _type = "json"
 
-    def set_xml_data(self, data: str):
-        """xml内容, xml中的value部分, 记得实体化处理"""
+    def set_json_data(self, data: Union[str, dict, list, int]):
+        """json内容, json的所有字符串记得实体化处理
+
+        json中的字符串需要进行转义，否则无法正确得到解析:
+
+        `,` => `&#44;`
+
+        `&` => `&amp;`
+
+        `[` => `&#91;`
+
+        `]` => `&#93;`
+        """
+        if not isinstance(data, str):
+            data = json.dumps(data)
+        data = data.replace(",", "&#44;").replace("&", "&amp;").replace("[", "&#91;").replace("]", "&#93;")
         self['data'] = data
         return self
 
     def set_resid(self, resid: int):
+        """默认不填为0, 走小程序通道, 填了走富文本通道发送"""
         self['resid'] = resid
         return self
 
 
+# TODO: cardimage
+
+
 class Text2Voice(CqCode):
+    """文本转语音
+
+    通过TX的TTS接口, 采用的音源与登录账号的性别有关"""
     _type = "tts"
 
     def set_text(self, text: str):
+        """内容"""
         self['text'] = text
         return self
 
@@ -326,3 +395,7 @@ class CqCodeUnderstander:
             cqcode = self._understand_map.get(cqcode_dict.get('CQ'))
             if cqcode and type(cqcode) != CqCode:
                 return cqcode(cqcode_dict['data'])
+
+    def seperate_sentence(self, str_msg: str):
+        # TODO: 添加从 message 中按照 cqcode 分割的方法
+        pass
