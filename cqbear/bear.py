@@ -152,7 +152,7 @@ class BearBrain(object):
             time.sleep(0.1)
             sound = self._listen()
             if sound and type(sound) != BaseSound:
-                print(f"[GOT] [{type(sound)}] {sound.type_short}")
+                # print(f"[GOT] [{type(sound)}] {sound.type_short}")
                 react_cb_lst = self._react_map.get(type(sound))
                 if react_cb_lst:
                     for cb in react_cb_lst:
