@@ -15,10 +15,13 @@ SECOND_TYPE 对应 xxx_type，其中 xxx 是 FIRST_TYPE 的内容，例如 FIRST
 THIRD_TYPE 对应 sub_type，用于更加细致地细分消息类型。
 
 TODO:
-从 群文件上传 继续丰富方法
+- [x] 添加事件
+- [x] 添加获取参数的property
+- [ ] 添加注释
 """
 
 import sys
+from typing import List
 
 from cqbear.util import allSubclasses
 
@@ -283,11 +286,44 @@ class Notice(BaseSound):
         super(Notice, self).__init__(data)
 
 
+class GroupUploadNoticeFile(dict):
+    def __init__(self, data: dict):
+        super(GroupUploadNoticeFile, self).__init__(data)
+
+    @property
+    def id(self) -> str:
+        return self.get(sys._getframe().f_code.co_name)
+
+    @property
+    def name(self) -> str:
+        return self.get(sys._getframe().f_code.co_name)
+
+    @property
+    def size(self) -> int:
+        return self.get(sys._getframe().f_code.co_name)
+
+    @property
+    def busid(self) -> int:
+        return self.get(sys._getframe().f_code.co_name)
+
+
 class GroupUploadNotice(Notice):
     SECOND_TYPE = "group_upload"
 
     def __init__(self, data: dict):
         super(GroupUploadNotice, self).__init__(data)
+
+    @property
+    def group_id(self) -> int:
+        return self.get(sys._getframe().f_code.co_name)
+
+    @property
+    def user_id(self) -> int:
+        return self.get(sys._getframe().f_code.co_name)
+
+    @property
+    def file(self) -> GroupUploadNoticeFile:
+        return GroupUploadNoticeFile(self.get(sys._getframe().f_code.co_name))
 
 
 class GroupAdminNotice(Notice):
@@ -295,6 +331,14 @@ class GroupAdminNotice(Notice):
 
     def __init__(self, data: dict):
         super(GroupAdminNotice, self).__init__(data)
+
+    @property
+    def group_id(self) -> int:
+        return self.get(sys._getframe().f_code.co_name)
+
+    @property
+    def user_id(self) -> int:
+        return self.get(sys._getframe().f_code.co_name)
 
 
 class SetGroupAdminNotice(GroupAdminNotice):
@@ -316,6 +360,18 @@ class GroupDecreaseNotice(Notice):
 
     def __init__(self, data: dict):
         super(GroupDecreaseNotice, self).__init__(data)
+
+    @property
+    def group_id(self) -> int:
+        return self.get(sys._getframe().f_code.co_name)
+
+    @property
+    def operator_id(self) -> int:
+        return self.get(sys._getframe().f_code.co_name)
+
+    @property
+    def user_id(self) -> int:
+        return self.get(sys._getframe().f_code.co_name)
 
 
 class LeaveGroupDecreaseNotice(GroupDecreaseNotice):
@@ -345,6 +401,18 @@ class GroupIncreaseNotice(Notice):
     def __init__(self, data: dict):
         super(GroupIncreaseNotice, self).__init__(data)
 
+    @property
+    def group_id(self) -> int:
+        return self.get(sys._getframe().f_code.co_name)
+
+    @property
+    def operator_id(self) -> int:
+        return self.get(sys._getframe().f_code.co_name)
+
+    @property
+    def user_id(self) -> int:
+        return self.get(sys._getframe().f_code.co_name)
+
 
 class ApproveGroupIncreaseNotice(GroupIncreaseNotice):
     THIRD_TYPE = "approve"
@@ -366,12 +434,32 @@ class GroupBanNotice(Notice):
     def __init__(self, data: dict):
         super(GroupBanNotice, self).__init__(data)
 
+    @property
+    def group_id(self) -> int:
+        return self.get(sys._getframe().f_code.co_name)
+
+    @property
+    def operator_id(self) -> int:
+        return self.get(sys._getframe().f_code.co_name)
+
+    @property
+    def user_id(self) -> int:
+        return self.get(sys._getframe().f_code.co_name)
+
+    @property
+    def duration(self) -> int:
+        return self.get(sys._getframe().f_code.co_name)
+
 
 class FriendAddNotice(Notice):
     SECOND_TYPE = "friend_add"
 
     def __init__(self, data: dict):
         super(FriendAddNotice, self).__init__(data)
+
+    @property
+    def user_id(self) -> int:
+        return self.get(sys._getframe().f_code.co_name)
 
 
 class GroupRecallNotice(Notice):
@@ -380,12 +468,36 @@ class GroupRecallNotice(Notice):
     def __init__(self, data: dict):
         super(GroupRecallNotice, self).__init__(data)
 
+    @property
+    def group_id(self) -> int:
+        return self.get(sys._getframe().f_code.co_name)
+
+    @property
+    def user_id(self) -> int:
+        return self.get(sys._getframe().f_code.co_name)
+
+    @property
+    def operator_id(self) -> int:
+        return self.get(sys._getframe().f_code.co_name)
+
+    @property
+    def message_id(self) -> int:
+        return self.get(sys._getframe().f_code.co_name)
+
 
 class FriendRecallNotice(Notice):
     SECOND_TYPE = "friend_recall"
 
     def __init__(self, data: dict):
         super(FriendRecallNotice, self).__init__(data)
+
+    @property
+    def user_id(self) -> int:
+        return self.get(sys._getframe().f_code.co_name)
+
+    @property
+    def message_id(self) -> int:
+        return self.get(sys._getframe().f_code.co_name)
 
 
 class Notify(Notice):
@@ -395,11 +507,99 @@ class Notify(Notice):
         super(Notify, self).__init__(data)
 
 
+class PokeNotify(Notify):
+    THIRD_TYPE = "poke"
+
+    def __init__(self, data: dict):
+        super(PokeNotify, self).__init__(data)
+
+    @property
+    def sender_id(self) -> int:
+        return self.get(sys._getframe().f_code.co_name)
+
+    @property
+    def user_id(self) -> int:
+        return self.get(sys._getframe().f_code.co_name)
+
+    @property
+    def target_id(self) -> int:
+        return self.get(sys._getframe().f_code.co_name)
+
+    @property
+    def group_id(self) -> int:
+        """TODO: 添加关于戳一戳注释"""
+        return self.get(sys._getframe().f_code.co_name)
+
+
+class GroupLuckyKingNotify(Notify):
+    THIRD_TYPE = "lucky_king"
+
+    def __init__(self, data: dict):
+        super(GroupLuckyKingNotify, self).__init__(data)
+
+    @property
+    def user_id(self) -> int:
+        return self.get(sys._getframe().f_code.co_name)
+
+    @property
+    def target_id(self) -> int:
+        return self.get(sys._getframe().f_code.co_name)
+
+
+class GroupMemberHonorChangeNotify(Notify):
+    THIRD_TYPE = "honor"
+
+    def __init__(self, data: dict):
+        super(GroupMemberHonorChangeNotify, self).__init__(data)
+
+    @property
+    def user_id(self) -> int:
+        return self.get(sys._getframe().f_code.co_name)
+
+    @property
+    def honor_type(self) -> str:
+        return self.get(sys._getframe().f_code.co_name)
+
+
 class GroupCardNotice(Notice):
     SECOND_TYPE = "group_card"
 
     def __init__(self, data: dict):
         super(GroupCardNotice, self).__init__(data)
+
+    @property
+    def group_id(self) -> int:
+        return self.get(sys._getframe().f_code.co_name)
+
+    @property
+    def user_id(self) -> int:
+        return self.get(sys._getframe().f_code.co_name)
+
+    @property
+    def card_new(self) -> str:
+        return self.get(sys._getframe().f_code.co_name)
+
+    @property
+    def card_old(self) -> str:
+        return self.get(sys._getframe().f_code.co_name)
+
+
+class OfflineFileNoticeFile(dict):
+
+    def __init__(self, data: dict):
+        super(OfflineFileNoticeFile, self).__init__(data)
+
+    @property
+    def name(self) -> str:
+        return self.get(sys._getframe().f_code.co_name)
+
+    @property
+    def size(self) -> int:
+        return self.get(sys._getframe().f_code.co_name)
+
+    @property
+    def url(self) -> str:
+        return self.get(sys._getframe().f_code.co_name)
 
 
 class OfflineFileNotice(Notice):
@@ -408,6 +608,32 @@ class OfflineFileNotice(Notice):
     def __init__(self, data: dict):
         super(OfflineFileNotice, self).__init__(data)
 
+    @property
+    def user_id(self) -> int:
+        return self.get(sys._getframe().f_code.co_name)
+
+    @property
+    def file(self) -> OfflineFileNoticeFile:
+        return OfflineFileNoticeFile(self.get(sys._getframe().f_code.co_name))
+
+
+class ClientStatusNoticeDevice(dict):
+
+    def __init__(self, data: dict):
+        super(ClientStatusNoticeDevice, self).__init__(data)
+
+    @property
+    def app_id(self) -> int:
+        return self.get(sys._getframe().f_code.co_name)
+
+    @property
+    def device_name(self) -> str:
+        return self.get(sys._getframe().f_code.co_name)
+
+    @property
+    def device_kind(self) -> str:
+        return self.get(sys._getframe().f_code.co_name)
+
 
 class ClientStatusNotice(Notice):
     SECOND_TYPE = "client_status"
@@ -415,12 +641,35 @@ class ClientStatusNotice(Notice):
     def __init__(self, data: dict):
         super(ClientStatusNotice, self).__init__(data)
 
+    @property
+    def online(self) -> bool:
+        return self.get(sys._getframe().f_code.co_name)
+
+    @property
+    def client(self) -> List(ClientStatusNoticeDevice):
+        clients = list()
+        for dev in self.get(sys._getframe().f_code.co_name):
+            clients.append(ClientStatusNoticeDevice(dev))
+        return clients
+
 
 class EssenceNotice(Notice):
     SECOND_TYPE = "essence"
 
     def __init__(self, data: dict):
         super(EssenceNotice, self).__init__(data)
+
+    @property
+    def sender_id(self) -> int:
+        return self.get(sys._getframe().f_code.co_name)
+
+    @property
+    def operator_id(self) -> int:
+        return self.get(sys._getframe().f_code.co_name)
+
+    @property
+    def message_id(self) -> int:
+        return self.get(sys._getframe().f_code.co_name)
 
 
 class AddEssenceNotice(EssenceNotice):
@@ -445,10 +694,23 @@ class Request(BaseSound):
 
 
 class FriendRequest(Request):
+    """使用 cqbear.sentence.SetFriendAddRequest 处理此事件"""
     SECOND_TYPE = "friend"
 
     def __init__(self, data: dict):
         super(FriendRequest, self).__init__(data)
+
+    @property
+    def user_id(self) -> int:
+        return self.get(sys._getframe().f_code.co_name)
+
+    @property
+    def comment(self) -> int:
+        return self.get(sys._getframe().f_code.co_name)
+
+    @property
+    def flag(self) -> str:
+        return self.get(sys._getframe().f_code.co_name)
 
 
 class GroupRequest(Request):
@@ -456,6 +718,36 @@ class GroupRequest(Request):
 
     def __init__(self, data: dict):
         super(GroupRequest, self).__init__(data)
+
+    @property
+    def group_id(self) -> int:
+        return self.get(sys._getframe().f_code.co_name)
+
+    @property
+    def user_id(self) -> int:
+        return self.get(sys._getframe().f_code.co_name)
+
+    @property
+    def comment(self) -> str:
+        return self.get(sys._getframe().f_code.co_name)
+
+    @property
+    def flag(self) -> str:
+        return self.get(sys._getframe().f_code.co_name)
+
+
+class AddGroupRequest(Request):
+    THIRD_TYPE = "add"
+
+    def __init__(self, data: dict):
+        super(AddGroupRequest, self).__init__(data)
+
+
+class InviteGroupRequest(Request):
+    THIRD_TYPE = "invite"
+
+    def __init__(self, data: dict):
+        super(InviteGroupRequest, self).__init__(data)
 
 
 class SoundUnderstander:
