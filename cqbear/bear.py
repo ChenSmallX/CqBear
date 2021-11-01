@@ -32,6 +32,9 @@ class BearEar(object):
         self._understander = SoundUnderstander()
         self._thread = None
 
+        # TODO:
+        # replace the flask http server to
+        # hand-write, socket-based http server
         self._ear = Flask(__name__)
         self._ear.add_url_rule(
             rule="/",
@@ -152,11 +155,17 @@ class BearBrain(object):
             time.sleep(0.1)
             sound = self._listen()
             if sound and type(sound) != BaseSound:
-                # print(f"[GOT] [{type(sound)}] {sound.type_short}")
+                try:
+                    print(f"[GOT] [{type(sound)}] {sound.type_short} : {sound.message}")
+                except Exception:
+                    pass
                 react_cb_lst = self._react_map.get(type(sound))
                 if react_cb_lst:
                     for cb in react_cb_lst:
-                        cb(self._bear, sound)
+                        try:
+                            cb(self._bear, sound)
+                        except Exception as e:
+                            print(e)
 
     def start_think(self):
         self._thread = threading.Thread(
