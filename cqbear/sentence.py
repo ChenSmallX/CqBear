@@ -28,6 +28,9 @@ class CqCode(dict):
     def to_str(self):
         return str(self)
 
+    def has_me(self, msg: str) -> bool:
+        return str(self) in msg
+
 
 class Face(CqCode):
     """QQ 表情"""
