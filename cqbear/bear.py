@@ -84,12 +84,18 @@ class BearEar(object):
     def is_listening(self):
         return self.status and self.__think_thread.is_alive()
 
-    def get_sound(self):
+    def get_sound(self) -> Optional[BaseSound]:
         if not len(self.__sound_list):
             return None
         sound = self.__sound_list[0]
         del self.__sound_list[0]
         return sound
+
+    def ignore_sound(self):
+        self.status = self.IGNORE
+
+    def listen_sound(self):
+        self.status = self.LISTEN
 
 
 class BearMouth(object):
@@ -249,24 +255,24 @@ class CqBear(object):
 
         self.qq = qq
 
-        self.ear = BearEar(self.addr, self.port, self.secret)
+        self.__ear = BearEar(self.addr, self.port, self.secret)
         self.mouth = BearMouth(self.cq_addr, self.cq_port)
-        self.brain = BearBrain(self, self.ear.get_sound,
+        self.brain = BearBrain(self, self.__ear.get_sound,
                                self.mouth.speak,
                                self.__react_map, self.__remember_list)
 
     def start(self):
         self.mouth.free()
-        self.ear.start_listen()
+        self.__ear.start_listen()
         self.brain.start_think()
 
     def stop(self):
         self.mouth.shut_up()
-        self.ear.stop_listen()
+        self.__ear.stop_listen()
         self.brain.stop_think()
 
     def reset(self):
-        self.ear.clear_sound()
+        self.__ear.clear_sound()
 
     # decorator func
     @classmethod
@@ -286,3 +292,20 @@ class CqBear(object):
                 cls.__remember_list[job] = react
             return react
         return warpper
+
+    # the ear encapsulat
+
+    def ear_clear_sound(self):
+        self.__ear.clear_sound()
+
+    def ear_is_listening(self) -> bool:
+        return self.__ear.is_listening
+
+    def ear_get_sound(self):
+        return self.__ear.get_sound()
+
+    def ear_ignore_sound(self):
+        self.__ear.ignore_sound()
+
+    def ear_listen_sound(self):
+        self.__ear.listen_sound()
