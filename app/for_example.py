@@ -27,7 +27,7 @@ def check_friend_msg(msg: FriendPrivateMessage, user_id: int) -> bool:
     return msg.user_id == user_id
 
 
-@CqBear.add_react(NormalGroupMessage)
+@CqBear.react(NormalGroupMessage)
 def reply_group(bear: CqBear, msg: NormalGroupMessage):
     """
     监听并回复群消息
@@ -41,7 +41,7 @@ def reply_group(bear: CqBear, msg: NormalGroupMessage):
         bear.mouth.speak(roar)
 
 
-@CqBear.add_react(FriendPrivateMessage)
+@CqBear.react(FriendPrivateMessage)
 def reply_friend(bear: CqBear, msg: FriendPrivateMessage):
     """
     监听并回复好友信息
@@ -54,7 +54,7 @@ def reply_friend(bear: CqBear, msg: FriendPrivateMessage):
         bear.mouth.speak(roar)
 
 
-@CqBear.add_remember(every(1).hour.at("0:0:0"))
+@CqBear.remember(every(1).hour.at("0:0:0"))
 def punctually_per_hour(bear: CqBear):
     now = datetime.datetime.now()
     roar = SendGroupMessage()

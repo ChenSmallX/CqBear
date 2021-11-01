@@ -151,20 +151,17 @@ class BearBrain(object):
         self.__react_map.update(react_map)
         self.__think_thread = None
         self.__remember_thread = None
-        self.__status = self.THINKING
+        self.__status = self.REST
         self.__remember = Remember()
 
         for job, func in remember_map.items():
             self.add_remember(job, func)
 
     @property
-    def status(self):
-        return self.__status and self.__think_thread.is_alive()
-
-    @status.setter
-    def status(self, val: bool):
-        if isinstance(val, bool):
-            self.__status = val
+    def is_thinking(self):
+        return self.__status and \
+               self.__think_thread.is_alive() and \
+               self.__remember_thread.is_alive()
 
     def _think(self):
         while True:
@@ -184,6 +181,9 @@ class BearBrain(object):
                             print(e)
 
     def start_think(self):
+        if self.is_thinking:
+            return
+
         self.__think_thread = threading.Thread(
             target=self._think,
             name="cqBear_brain_think"
@@ -216,10 +216,10 @@ class BearBrain(object):
             stop_thread(self.__remember_thread)
         if not self.__think_thread.is_alive() and \
            not self.__remember_thread.is_alive():
-            self.status = self.REST
+            self.__status = self.REST
             print("bear brain stop think")
 
-    def add_react(self, sound: BaseSound, react: callable):
+    def add_react(self, sound: BaseSound, react: Callable):
         if sound not in self.__react_map.keys():
             self.__react_map[sound] = [react]
         else:
@@ -257,26 +257,26 @@ class CqBear(object):
 
         self.__ear = BearEar(self.addr, self.port, self.secret)
         self.mouth = BearMouth(self.cq_addr, self.cq_port)
-        self.brain = BearBrain(self, self.__ear.get_sound,
+        self.__brain = BearBrain(self, self.__ear.get_sound,
                                self.mouth.speak,
                                self.__react_map, self.__remember_list)
 
     def start(self):
         self.mouth.free()
         self.__ear.start_listen()
-        self.brain.start_think()
+        self.__brain.start_think()
 
     def stop(self):
         self.mouth.shut_up()
         self.__ear.stop_listen()
-        self.brain.stop_think()
+        self.__brain.stop_think()
 
     def reset(self):
         self.__ear.clear_sound()
 
     # decorator func
     @classmethod
-    def add_react(cls, sound_type: type):
+    def react(cls, sound_type: type):
         def warpper(react):
             if sound_type not in cls.__react_map.keys():
                 cls.__react_map[sound_type] = [react]
@@ -286,7 +286,7 @@ class CqBear(object):
         return warpper
 
     @classmethod
-    def add_remember(cls, job: Job):
+    def remember(cls, job: Job):
         def warpper(react):
             if job not in cls.__remember_list.keys():
                 cls.__remember_list[job] = react
@@ -294,7 +294,6 @@ class CqBear(object):
         return warpper
 
     # the ear encapsulat
-
     def ear_clear_sound(self):
         self.__ear.clear_sound()
 
@@ -309,3 +308,20 @@ class CqBear(object):
 
     def ear_listen_sound(self):
         self.__ear.listen_sound()
+
+    # the brain envapsulat
+    def brain_is_thinking(self):
+        return self.__brain.is_thinking
+
+    def add_react(self, sound: BaseSound, react: Callable):
+        self.__brain.add_react(sound, react)
+
+    def add_remember(self, job: Job, react: Callable):
+        self.__brain.add_remember(job, react)
+
+    def brain_stop_think(self):
+        self.__brain.stop_think()
+
+    def brain_start_think(self):
+        if not self.__brain.is_thinking:
+            self.__brain.start_think()
