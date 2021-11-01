@@ -489,6 +489,15 @@ class Job:
         return wrapper
 
 
+def every(interval=1):
+    """create a job for the remember and return it for configuring
+
+    Return:
+        Job object which not bind remember
+    """
+    return Job(remember=None, interval=1)
+
+
 if __name__ == "__main__":
     import datetime
 
