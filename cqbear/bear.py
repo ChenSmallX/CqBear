@@ -4,10 +4,12 @@ TODO:
 """
 
 import time
+from typing import Callable, Dict, Optional
 import requests
 import threading
 
 from flask import Flask, request as flask_request
+from cqbear.remember import Job, Remember
 from cqbear.roar import Roar
 from cqbear.sound import BaseSound, SoundUnderstander
 from cqbear.util import stop_thread
@@ -28,9 +30,9 @@ class BearEar(object):
         self.secret = secret
         self.status = self.IGNORE
 
-        self._sound_list = []
-        self._understander = SoundUnderstander()
-        self._thread = None
+        self.__sound_list = []
+        self.__understander = SoundUnderstander()
+        self.__think_thread = None
 
         # TODO:
         # replace the flask http server to
@@ -39,20 +41,20 @@ class BearEar(object):
         self._ear.add_url_rule(
             rule="/",
             endpoint=None,
-            view_func=self._listen,
+            view_func=self.__listen,
             methods=['POST'])
 
-    def _listen(self):
+    def __listen(self):
         if self.is_listening:
             request_json_data = flask_request.get_json()
-            sound = self._understander.understand(request_json_data)
+            sound = self.__understander.understand(request_json_data)
             if sound and isinstance(sound, BaseSound):
-                self._sound_list.append(sound)
+                self.__sound_list.append(sound)
                 # print(f"insert a sound into list \n {sound}")
         return 'OK'
 
     def start_listen(self):
-        self._thread = threading.Thread(
+        self.__think_thread = threading.Thread(
             target=self._ear.run,
             name="cqBear_ear_flask",
             kwargs={
@@ -63,30 +65,30 @@ class BearEar(object):
             }
         )
 
-        if self._thread:
-            self._thread.start()
+        if self.__think_thread:
+            self.__think_thread.start()
         self.status = self.LISTEN
         print(f"bear ear listen at {self.addr}:{self.port}")
 
     def stop_listen(self):
-        if self._thread.is_alive():
+        if self.__think_thread.is_alive():
             stop_thread(self)
-        if not self._thread.is_alive():
+        if not self.__think_thread.is_alive():
             self.status = self.IGNORE
             print("bear ear will ignore all sound")
 
     def clear_sound(self):
-        self._sound_list.clear()
+        self.__sound_list.clear()
 
     @property
     def is_listening(self):
-        return self.status and self._thread.is_alive()
+        return self.status and self.__think_thread.is_alive()
 
     def get_sound(self):
-        if not len(self._sound_list):
+        if not len(self.__sound_list):
             return None
-        sound = self._sound_list[0]
-        del self._sound_list[0]
+        sound = self.__sound_list[0]
+        del self.__sound_list[0]
         return sound
 
 
@@ -100,17 +102,17 @@ class BearMouth(object):
         self.port = port
         self._base_url = f"http://{self.addr}:{self.port}"
 
-        self._status = self.FREE
+        self.__status = self.FREE
 
     @property
     def speakable(self):
-        return self._status and True
+        return self.__status and True
 
     def free(self):
-        self._status = self.FREE
+        self.__status = self.FREE
 
     def shut_up(self):
-        self._status = self.SHUTUP
+        self.__status = self.SHUTUP
 
     def speak(self, roar: Roar):
         if not self.speakable:
@@ -130,67 +132,97 @@ class BearBrain(object):
     THINKING = True
     REST = False
 
-    _react_map = {}
+    __react_map = {}
+    __remember: Optional[Remember] = None
 
     def __init__(self, bear, listen_cb: callable,
-                 speak_cb: callable, react_map: dict):
-        self._bear = bear
-        self._listen = listen_cb
-        self._speak = speak_cb
-        self._react_map.update(react_map)
-        self._thread = None
-        self._status = self.THINKING
+                 speak_cb: callable,
+                 react_map: Dict[BaseSound, Callable],
+                 remember_map: Dict[Job, Callable]):
+        self.__bear = bear
+        self.__listen = listen_cb
+        self.__speak = speak_cb
+        self.__react_map.update(react_map)
+        self.__think_thread = None
+        self.__remember_thread = None
+        self.__status = self.THINKING
+        self.__remember = Remember()
+
+        for job, func in remember_map.items():
+            self.add_remember(job, func)
 
     @property
     def status(self):
-        return self._status and self._thread.is_alive()
+        return self.__status and self.__think_thread.is_alive()
 
     @status.setter
     def status(self, val: bool):
         if isinstance(val, bool):
-            self._status = val
+            self.__status = val
 
     def _think(self):
         while True:
             time.sleep(0.1)
-            sound = self._listen()
+            sound = self.__listen()
             if sound and type(sound) != BaseSound:
                 try:
-                    print(f"[GOT] [{type(sound)}] {sound.type_short} : {sound.message}")
+                    print(f"[GOT] [{type(sound)}] <{sound.type_short}>: {sound.message}")
                 except Exception:
                     pass
-                react_cb_lst = self._react_map.get(type(sound))
+                react_cb_lst = self.__react_map.get(type(sound))
                 if react_cb_lst:
                     for cb in react_cb_lst:
                         try:
-                            cb(self._bear, sound)
+                            cb(self.__bear, sound)
                         except Exception as e:
                             print(e)
 
     def start_think(self):
-        self._thread = threading.Thread(
+        self.__think_thread = threading.Thread(
             target=self._think,
             name="cqBear_brain_think"
         )
+        if self.__think_thread:
+            self.__think_thread.start()
 
-        if self._thread:
-            self._thread.start()
-        self._status = self.THINKING
+        self.__remember_thread = threading.Thread(
+            target=self.__remember.parallel_run,
+            name="cqBear_brain_remember"
+        )
+        if self.__remember_thread:
+            self.__remember_thread.start()
+
+        if self.__think_thread.is_alive() and \
+           self.__remember_thread.is_alive():
+            self.__status = self.THINKING
+        elif not self.__think_thread.is_alive():
+            raise Exception("bear thinking thread running failed")
+        elif not self.__remember_thread.is_alive():
+            raise Exception("bear remember thread running failed")
         print("bear brain start think")
 
     def stop_think(self):
-        if self._thread.is_alive():
-            stop_thread(self._thread)
-        if not self._thread.is_alive():
+        if self.__think_thread.is_alive():
+            stop_thread(self.__think_thread)
+        if self.__remember_thread.is_alive():
+            self.__remember.pause()
+            self.__remember_thread.join()
+            stop_thread(self.__remember_thread)
+        if not self.__think_thread.is_alive() and \
+           not self.__remember_thread.is_alive():
             self.status = self.REST
             print("bear brain stop think")
 
-    @classmethod
-    def add_react(cls, sound: BaseSound, react: callable):
-        if sound not in cls._react_map.keys():
-            cls._react_map[sound] = [react]
+    def add_react(self, sound: BaseSound, react: callable):
+        if sound not in self.__react_map.keys():
+            self.__react_map[sound] = [react]
         else:
-            cls._react_map[sound].append(react)
+            self.__react_map[sound].append(react)
+
+    def add_remember(self, job: Job, func: Callable):
+        if not self.__remember:
+            self.__remember = Remember()
+        job.to_do(func, self.__bear).bind_remember(self.__remember)
 
 
 class CqBear(object):
@@ -203,7 +235,8 @@ class CqBear(object):
         bear.app().load("class.or.list.of.class")
         bear.start()
     """
-    _react_map = {}
+    __react_map = {}
+    __remember_list = {}
 
     def __init__(self, addr="localhost", port=5701, secret="",
                  cq_addr="localhost", cq_port=5700, qq=None):
@@ -219,7 +252,8 @@ class CqBear(object):
         self.ear = BearEar(self.addr, self.port, self.secret)
         self.mouth = BearMouth(self.cq_addr, self.cq_port)
         self.brain = BearBrain(self, self.ear.get_sound,
-                               self.mouth.speak, self._react_map)
+                               self.mouth.speak,
+                               self.__react_map, self.__remember_list)
 
     def start(self):
         self.mouth.free()
@@ -238,9 +272,17 @@ class CqBear(object):
     @classmethod
     def add_react(cls, sound_type: type):
         def warpper(react):
-            if sound_type not in cls._react_map.keys():
-                cls._react_map[sound_type] = [react]
+            if sound_type not in cls.__react_map.keys():
+                cls.__react_map[sound_type] = [react]
             else:
-                cls._react_map[sound_type].append(react)
+                cls.__react_map[sound_type].append(react)
+            return react
+        return warpper
+
+    @classmethod
+    def add_remember(cls, job: Job):
+        def warpper(react):
+            if job not in cls.__remember_list.keys():
+                cls.__remember_list[job] = react
             return react
         return warpper
