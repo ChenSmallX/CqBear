@@ -256,23 +256,22 @@ class CqBear(object):
         self.qq = qq
 
         self.__ear = BearEar(self.addr, self.port, self.secret)
-        self.mouth = BearMouth(self.cq_addr, self.cq_port)
+        self.__mouth = BearMouth(self.cq_addr, self.cq_port)
         self.__brain = BearBrain(self, self.__ear.get_sound,
-                               self.mouth.speak,
-                               self.__react_map, self.__remember_list)
+                                 self.__mouth.speak,
+                                 self.__react_map, self.__remember_list)
 
     def start(self):
-        self.mouth.free()
+        self.__mouth.free()
         self.__ear.start_listen()
         self.__brain.start_think()
 
     def stop(self):
-        self.mouth.shut_up()
+        self.__mouth.shut_up()
         self.__ear.stop_listen()
         self.__brain.stop_think()
 
-    def reset(self):
-        self.__ear.clear_sound()
+    # TODO: looking for the reason of reset method
 
     # decorator func
     @classmethod
@@ -325,3 +324,16 @@ class CqBear(object):
     def brain_start_think(self):
         if not self.__brain.is_thinking:
             self.__brain.start_think()
+
+    # the mouth encapsulat
+    def speak(self, roar: Roar):
+        return self.__mouth.speak(roar)
+
+    def mouth_shutup(self):
+        self.__mouth.shut_up()
+
+    def mouth_free(self):
+        self.__mouth.free()
+
+    def mouth_speakable(self):
+        return self.__mouth.speakable
