@@ -921,7 +921,7 @@ class SetGroupPortrait(Roar):
         return self
 
 
-class GetWordSlices(Roar):
+class GetChineseWordSlices(Roar):
     """获取中文分词
     ---
     参数
