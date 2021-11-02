@@ -33,7 +33,23 @@ class CqCode(dict):
         return str(self)
 
     def has_me(self, msg: str) -> bool:
-        return str(self) in msg
+        _, cqcode_list = CqCodeUnderstander.extract_sentence(msg)
+        for cqcode in cqcode_list:
+            if self == cqcode:
+                return True
+        return False
+
+    def __eq__(self, o) -> bool:
+        if self.__class__ != o.__class__:
+            return False
+        if self._type != o._type:
+            return False
+        for k in self.keys():
+            if k not in o.keys():
+                return False
+            if str(self[k]) != str(o[k]):
+                return False
+        return True
 
 
 class Face(CqCode):
@@ -448,10 +464,11 @@ class CqCodeUnderstander:
 
 
 if __name__ == "__main__":
-    s = "part1[CQ:at,qq=666]part2 [CQ:face,id=12]"
+    s = "part1[CQ:at,qq=667]part2 [CQ:face,id=12]"
     str_list, cqcode_list = CqCodeUnderstander.extract_sentence(s)
     print(f"str_list   : {str_list}")
     print(f"cqcode_list: {cqcode_list}")
 
-    print(f"str cqcode : {str(cqcode_list[0])}")
-    print(f"repr cqcode: {repr(cqcode_list[0])}")
+    print(At().set_user_id(666) == At().set_user_id(666).set_name("haha"))
+    print(At().set_user_id(666).set_name("haha") == At().set_user_id(666))
+    print(At().set_user_id(666).has_me(s))
