@@ -10,6 +10,7 @@ from cqbear.util import allSubclasses
 
 
 class CqCode(dict):
+    """CqCode 基类"""
     _type = ""
 
     def __init__(self, data=None):
@@ -24,6 +25,9 @@ class CqCode(dict):
         for k, v in self.items():
             data += f",{k}={v}"
         return f"[CQ:{self._type}{data}]"
+
+    def __repr__(self) -> str:
+        return f"<{self.__class__}: {self.__str__()}>"
 
     def to_str(self):
         return str(self)
@@ -399,6 +403,55 @@ class CqCodeUnderstander:
             if cqcode and type(cqcode) != CqCode:
                 return cqcode(cqcode_dict['data'])
 
-    def seperate_sentence(self, str_msg: str):
-        # TODO: 添加从 message 中按照 cqcode 分割的方法
-        pass
+    @staticmethod
+    def extract_sentence(raw_msg: str):
+        str_list = []
+        cqcode_list = []
+
+        left_point = 0
+        right_point = -1
+        index = 0
+
+        seek_in_cqcode = False
+        bracket_level = 0
+
+        while index < len(raw_msg):
+            if left_point < right_point:
+                tmp_s = raw_msg[left_point: right_point]
+                str_list.append(tmp_s)
+                if tmp_s.startswith("[CQ:") and tmp_s.endswith("]"):
+                    cqcode_list.append(tmp_s)
+                left_point = right_point
+
+            if not seek_in_cqcode:
+                if raw_msg[index:index+4] == "[CQ:":
+                    right_point = index
+                    seek_in_cqcode = True
+                    bracket_level += 1
+            elif seek_in_cqcode:
+                if raw_msg[index] == "[":
+                    bracket_level += 1
+                elif raw_msg[index] == "]":
+                    bracket_level -= 1
+                if bracket_level == 0:
+                    right_point = index + 1
+                    seek_in_cqcode = False
+            index += 1
+
+        if right_point != index - 1:
+            tmp_s = raw_msg[left_point: index]
+            str_list.append(tmp_s)
+            if tmp_s.startswith("[CQ:") and tmp_s.endswith("]"):
+                cqcode_list.append(tmp_s)
+
+        return str_list, [CqCodeUnderstander().understand(cqcode) for cqcode in cqcode_list]
+
+
+if __name__ == "__main__":
+    s = "part1[CQ:at,qq=666]part2 [CQ:face,id=12]"
+    str_list, cqcode_list = CqCodeUnderstander.extract_sentence(s)
+    print(f"str_list   : {str_list}")
+    print(f"cqcode_list: {cqcode_list}")
+
+    print(f"str cqcode : {str(cqcode_list[0])}")
+    print(f"repr cqcode: {repr(cqcode_list[0])}")
