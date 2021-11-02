@@ -4,13 +4,24 @@ TODO:
 """
 
 import time
-from typing import Callable, Dict, Optional
+from typing import (
+    Callable, Dict, Optional,
+    Tuple, Union
+)
 import requests
 import threading
+import socket
+import json
 
 from flask import Flask, request as flask_request
 from cqbear.remember import Job, Remember
-from cqbear.roar import Roar
+from cqbear.roar import (
+    CheckCanSendImage, CheckCanSendVoiceRecord,
+    CheckUrlSafely, GetFriendList, GetGroupList,
+    GetGroupMemberList, GetMessage, GetOnlineClient,
+    GetStatus, GetVersionInfo, GetVipInfo,
+    RestartCqhttpServer, Roar, getLoginInfo
+)
 from cqbear.sound import BaseSound, SoundUnderstander
 from cqbear.util import stop_thread
 
@@ -120,7 +131,10 @@ class BearMouth(object):
     def shut_up(self):
         self.__status = self.SHUTUP
 
-    def speak(self, roar: Roar):
+    def speak(self, roar: Roar) -> Tuple[
+        int,
+        Optional[Union[dict, list]]
+    ]:
         if not self.speakable:
             return
 
@@ -131,7 +145,19 @@ class BearMouth(object):
         req_code = rcv.status_code
         req_content = rcv.content
         rcv.close()
-        return req_code, req_content
+
+        if req_code != 200:
+            return req_code, None
+
+        j_req = json.loads(req_content)
+        j_req_code = int(j_req.get("retcode", -1))
+        j_req_status = j_req.get("status", "fail")
+        j_req_data = j_req.get("data")
+
+        if not j_req_code == 0 or not j_req_status == "ok":
+            return j_req_code, None
+
+        return j_req_code, j_req_data
 
 
 class BearBrain(object):
@@ -327,6 +353,11 @@ class CqBear(object):
 
     # the mouth encapsulat
     def speak(self, roar: Roar):
+        """
+        Return:
+            int: response code
+            data: json-loaded dict data
+        """
         return self.__mouth.speak(roar)
 
     def mouth_shutup(self):
@@ -337,3 +368,153 @@ class CqBear(object):
 
     def mouth_speakable(self):
         return self.__mouth.speakable
+
+    # TODO: add the build-in roar call
+
+    def gocqhttp_online(self):
+        """check the cqhttp server online status
+
+        Return:
+            -> bool: `True` online `False` offline
+        """
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        result = sock.connect_ex((self.cq_addr, self.cq_port))
+        sock.close()
+        return result == 0
+
+    def login_info(self):
+        """get login bear basic info::
+
+        {
+            'user_id': str,
+            'nickname': str
+        }
+        """
+        if self.gocqhttp_online():
+            roar = getLoginInfo()
+            _, ret = self.speak(roar)
+            if ret:
+                self.qq = ret.get("user_id")
+                self.nickname = ret.get("nickname")
+
+            return ret
+
+    def get_friend_list(self):
+        if self.gocqhttp_online():
+            roar = GetFriendList()
+            _, ret = self.speak(roar)
+            if ret:
+                self.__friend_list = ret
+            return ret
+
+    @property
+    def friend_list(self):
+        return self.__friend_list if self.__friend_list else self.get_friend_list()
+
+    def get_group_list(self):
+        if self.gocqhttp_online():
+            roar_group_list = GetGroupList()
+            _, groups = self.speak(roar_group_list)
+            if groups:
+                for group in groups:
+                    group_id = int(group.get("group_id", 0))
+                    if group_id:
+                        roar_group_members = GetGroupMemberList().set_group_id(group_id)
+                        _, members = self.speak(roar_group_members)
+                        group['member_list'] = members
+                self.__group_list = groups
+                return groups
+
+    @property
+    def group_list(self):
+        return self.__group_list if self.__group_list else self.get_group_list()
+
+    @property
+    def can_send_image(self):
+        if self.gocqhttp_online():
+            roar = CheckCanSendImage()
+            _, ret = self.speak(roar)
+            if ret:
+                return bool(ret.get("yes", False))
+        return False
+
+    @property
+    def can_send_voice(self):
+        if self.gocqhttp_online():
+            roar = CheckCanSendVoiceRecord()
+            _, ret = self.speak(roar)
+            if ret:
+                return bool(ret.get("yes", False))
+        return False
+
+    def get_version_info(self):
+        if self.gocqhttp_online():
+            roar = GetVersionInfo()
+            _, ret = self.speak(roar)
+            if ret:
+                self.__version_info = ret
+                return ret
+
+    @property
+    def version_info(self):
+        return self.__version_info if self.__version_info else self.get_version_info()
+
+    def restart_gocqhttp(self, delay_ms=1000):
+        """"""
+        if self.gocqhttp_online():
+            roar = RestartCqhttpServer().set_delay_ms(delay_ms)
+            self.speak(roar)
+
+    def get_cqhttp_status(self):
+        if self.gocqhttp_online():
+            roar = GetStatus()
+            _, ret = self.speak(roar)
+            if ret:
+                self.__cqhttp_status = ret
+                return ret
+
+    @property
+    def cqhttp_status(self):
+        return self.__cqhttp_status if self.__cqhttp_status else self.get_cqhttp_status()
+
+    def get_vip_info(self, user_id: int = None):
+        if self.gocqhttp_online():
+            roar = GetVipInfo()
+            roar.set_user_id(user_id if user_id else self.qq)
+            _, ret = self.speak(roar)
+            if ret:
+                if not user_id:
+                    self.__vip_info = ret
+                return ret
+
+    @property
+    def vip_info(self):
+        return self.__vip_info if self.__vip_info else self.get_vip_info()
+
+    def get_online_client(self):
+        if self.gocqhttp_online():
+            roar = GetOnlineClient().set_no_cache(True)
+            _, clients = self.speak(roar)
+            if clients:
+                return clients
+        return []
+
+    @property
+    def online_client(self):
+        return self.get_online_client()
+
+    def is_url_safely(self, url: str) -> bool:
+        if self.gocqhttp_online():
+            roar = CheckUrlSafely().set_url(url)
+            _, ret = self.speak(roar)
+            return 1 == ret.get("level", 2)
+        return False
+
+    def get_message(self, msg_id: int):
+        """get message by id
+        """
+        if self.gocqhttp_online():
+            roar = GetMessage().set_message_id(msg_id)
+            _, msg = self.speak(roar)
+            if msg:
+                return msg
