@@ -270,8 +270,8 @@ class CqBear(object):
     __react_map = {}
     __remember_list = {}
 
-    def __init__(self, addr="localhost", port=5701, secret="",
-                 cq_addr="localhost", cq_port=5700, qq=None):
+    def __init__(self, addr: str = "localhost", port: int = 5701, secret="",
+                 cq_addr: str = "localhost", cq_port: int = 5700, qq: int = None):
         self.addr = addr
         self.port = port
         self.secret = secret
@@ -378,7 +378,7 @@ class CqBear(object):
             -> bool: `True` online `False` offline
         """
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        result = sock.connect_ex((self.cq_addr, self.cq_port))
+        result = sock.connect_ex((self.cq_addr, int(self.cq_port)))
         sock.close()
         return result == 0
 
