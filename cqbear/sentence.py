@@ -32,12 +32,24 @@ class CqCode(dict):
     def to_str(self):
         return str(self)
 
-    def has_me(self, msg: str) -> bool:
+    def has_me(self, msg: str):
+        """返回列表，列表包含消息中和当前Cqcode相匹配的cqcode
+
+        - 匹配规则：
+
+            类型相同，且当前CqCode中设置了的属性在传入CqCode中相同
+
+            例如：[CQ:at,qq=123] 可以匹配 [CQ:at,qq=123,name=hello]，反之不匹配
+
+        Return:
+            list[CqCode]
+        """
+        ret = []
         _, cqcode_list = CqCodeUnderstander.extract_sentence(msg)
         for cqcode in cqcode_list:
             if self == cqcode:
-                return True
-        return False
+                ret.append(cqcode)
+        return ret
 
     def __eq__(self, o) -> bool:
         if self.__class__ != o.__class__:
@@ -464,11 +476,11 @@ class CqCodeUnderstander:
 
 
 if __name__ == "__main__":
-    s = "part1[CQ:at,qq=667]part2 [CQ:face,id=12]"
+    s = "part1[CQ:at,qq=666][CQ:at,qq=667]part2 [CQ:face,id=12]"
     str_list, cqcode_list = CqCodeUnderstander.extract_sentence(s)
     print(f"str_list   : {str_list}")
     print(f"cqcode_list: {cqcode_list}")
 
     print(At().set_user_id(666) == At().set_user_id(666).set_name("haha"))
     print(At().set_user_id(666).set_name("haha") == At().set_user_id(666))
-    print(At().set_user_id(666).has_me(s))
+    print(At().has_me(s))
