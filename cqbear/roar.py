@@ -159,7 +159,7 @@ class DeleteMessage(Roar):
         return self
 
 
-Recall = DeleteMessage
+RecallMessage = DeleteMessage
 
 
 class GetMessage(Roar):
@@ -921,7 +921,60 @@ class SetGroupPortrait(Roar):
         return self
 
 
-# 图片 OCR `/ocr_image`或`/.ocr_image`
+class GetWordSlices(Roar):
+    """获取中文分词
+    ---
+    参数
+
+    | 字段      | 类型   | 说明 |
+    | --------- | ------ | ---- |
+    | `content` | string | 内容 |
+
+    响应数据
+
+    | 字段     | 类型     | 说明 |
+    | -------- | -------- | ---- |
+    | `slices` | string[] | 词组 |
+
+    """
+    _extend_url = ".get_word_slices"
+
+    def set_content(self, content: str):
+        """内容"""
+        self['content'] = content
+        return self
+
+
+class OcrImage(Roar):
+    """图片 OCR
+    ---
+    参数
+
+    | 字段    | 类型   | 说明   |
+    | ------- | ------ | ------ |
+    | `image` | string | 图片ID |
+
+    响应数据
+
+    | 字段       | 类型            | 说明    |
+    | ---------- | --------------- | ------- |
+    | `texts`    | TextDetection[] | OCR结果 |
+    | `language` | string          | 语言    |
+
+    TextDetection
+
+    | 字段          | 类型    | 说明   |
+    | ------------- | ------- | ------ |
+    | `text`        | string  | 文本   |
+    | `confidence`  | int32   | 置信度 |
+    | `coordinates` | vector2 | 坐标   |
+    """
+    _extend_url = "ocr_image"
+
+    def set_image_id(self, image_id: str):
+        """图片ID"""
+        self['image'] = image_id
+        return self
 
 
 class GetGroupSystemMessage(Roar):
