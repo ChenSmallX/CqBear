@@ -27,16 +27,19 @@ def check_friend_msg(msg: FriendPrivateMessage, user_id: int) -> bool:
     return msg.user_id == user_id
 
 
+def is_at_me(raw_msg: str) -> bool:
+    return At().set_user_id(SELF_ID).has_me(raw_msg)
+
+
 @CqBear.react(NormalGroupMessage)
 def reply_group(bear: CqBear, msg: NormalGroupMessage):
     """
     监听并回复群消息
     """
-    if check_group_msg(msg, GROUP_ID) and \
-       At().set_user_id(SELF_ID).has_me(msg.raw_message):
+    if check_group_msg(msg, GROUP_ID) and is_at_me(msg.raw_message):
         roar = SendGroupMessage()
         roar.set_group_id(msg.group_id)
-        roar.set_message("this is an example message")
+        roar.set_message("why you at me?")
 
         bear.speak(roar)
 
