@@ -116,7 +116,7 @@ class SendGroupForwardMassage(Roar):
     messages 存放的 forward node 为 cqbear.sentence.ForwardSend
 
     `sgfm = SendGroupForwardMessage().add_message(ForwardSend())`
-    `bear.mouth.speak(sgfm)`
+    `bear.speak(sgfm)`
     ---
     参数：
 

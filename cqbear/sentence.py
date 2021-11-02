@@ -271,7 +271,7 @@ class ForwardSend(CqCode):
     使用 `cqbear.roar.SendGroupForwardMessage` 类承接此类实例
 
     `sgfm = SendGroupForwardMessage().add_message(ForwardSend())`
-    `bear.mouth.speak(sgfm)`
+    `bear.speak(sgfm)`
     """
     _type = "node"
 

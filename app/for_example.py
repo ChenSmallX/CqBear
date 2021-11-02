@@ -38,7 +38,7 @@ def reply_group(bear: CqBear, msg: NormalGroupMessage):
         roar.set_group_id(msg.group_id)
         roar.set_message("this is an example message")
 
-        bear.mouth.speak(roar)
+        bear.speak(roar)
 
 
 @CqBear.react(FriendPrivateMessage)
@@ -51,7 +51,7 @@ def reply_friend(bear: CqBear, msg: FriendPrivateMessage):
         roar.set_user_id(msg.user_id)
         roar.set_message("this is an example message")
 
-        bear.mouth.speak(roar)
+        bear.speak(roar)
 
 
 @CqBear.remember(every(1).hour.at("0:0:0"))
@@ -61,4 +61,4 @@ def punctually_per_hour(bear: CqBear):
     roar.set_group_id(GROUP_ID)
     roar.set_message(f"now is {now.hour} o'clock!")
 
-    bear.mouth.speak(roar)
+    bear.speak(roar)
