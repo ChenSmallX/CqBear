@@ -269,8 +269,12 @@ class Job:
             pass
         return self
 
+    @property
+    def runable(self):
+        return True if self.__func else False
+
     def run(self):
-        if self.__func is None or not callable(self.__func):
+        if not self.runable:
             raise RememberException(
                 f"{self} call run method must set a callable object by to_do")
         if not self.__is_init:
