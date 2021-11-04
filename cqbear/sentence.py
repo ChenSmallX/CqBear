@@ -174,9 +174,9 @@ class Image(CqCode):
     """图片"""
     _type = "image"
 
-    def set_file_path(self, file_path: str):
+    def set_file_name(self, file_name: str):
         """图片文件名"""
-        self['file'] = file_path
+        self['file'] = file_name
         return self
 
     def set_type(self, image_type: str):
@@ -307,30 +307,35 @@ class ForwardSend(CqCode):
     """
     _type = "node"
 
+    def __init__(self, data=None):
+        super().__init__(data=data)
+        self['type'] = "node"
+        self['data'] = {}
+
     def set_node_id(self, id: int):
         """转发消息id
 
         直接引用他人的消息合并转发, 实际查看顺序为原消息发送顺序
 
         与其他的set_xxx自定义消息二选一"""
-        self['id'] = id
+        self['data']['id'] = id
         return self
 
     def set_node_user_name(self, name: str):
-        self['name'] = name
+        self['data']['name'] = name
         return self
 
     def set_user_id(self, user_id: int):
-        self['uin'] = user_id
+        self['data']['uin'] = user_id
         return self
 
     def set_content(self, content: str):
         """**不支持转发套娃**"""
-        self['content'] = content
+        self['data']['content'] = content
         return self
 
     def set_seq(self, seq: int):
-        self['seq'] = seq
+        self['data']['seq'] = seq
         return self
 
     def __str__(self):
