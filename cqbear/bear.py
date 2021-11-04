@@ -5,7 +5,7 @@ TODO:
 
 import time
 from typing import (
-    Callable, Dict, Optional,
+    Callable, Dict, List, Optional,
     Tuple, Union
 )
 import requests
@@ -147,7 +147,7 @@ class BearMouth(object):
         rcv.close()
 
         if req_code != 200:
-            return req_code, None
+            return req_code, req_content
 
         j_req = json.loads(req_content)
         j_req_code = int(j_req.get("retcode", -1))
@@ -155,7 +155,7 @@ class BearMouth(object):
         j_req_data = j_req.get("data")
 
         if not j_req_code == 0 or not j_req_status == "ok":
-            return j_req_code, None
+            return j_req_code, j_req
 
         return j_req_code, j_req_data
 
@@ -167,9 +167,9 @@ class BearBrain(object):
     __react_map = {}
     __remember: Optional[Remember] = None
 
-    def __init__(self, bear, listen_cb: callable,
-                 speak_cb: callable,
-                 react_map: Dict[BaseSound, Callable],
+    def __init__(self, bear, listen_cb: Callable,
+                 speak_cb: Callable,
+                 react_map: Dict[BaseSound, List[Callable]],
                  remember_map: Dict[Job, Callable]):
         self.__bear = bear
         self.__listen = listen_cb
@@ -251,10 +251,17 @@ class BearBrain(object):
         else:
             self.__react_map[sound].append(react)
 
-    def add_remember(self, job: Job, func: Callable):
+    def add_remember(self, job: Job, func: Optional[Callable] = None):
         if not self.__remember:
             self.__remember = Remember()
-        job.to_do(func, self.__bear).bind_remember(self.__remember)
+
+        if not job.runable and func is None:
+            raise Exception("added Job must with a callable function or use Job.to_do make it RUNABLE")
+
+        if not job.runable and func is not None:
+            job.to_do(func, self.__bear)
+        if job.runable:
+            job.bind_remember(self.__remember)
 
 
 class CqBear(object):
@@ -341,7 +348,7 @@ class CqBear(object):
     def add_react(self, sound: BaseSound, react: Callable):
         self.__brain.add_react(sound, react)
 
-    def add_remember(self, job: Job, react: Callable):
+    def add_remember(self, job: Job, react: Optional[Callable] = None):
         self.__brain.add_remember(job, react)
 
     def brain_stop_think(self):
