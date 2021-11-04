@@ -130,7 +130,7 @@ bear.start()                # 开始监听消息
 
 建议使用带有 **【自动补全】** 和 **【提示doc】** 的 IDE 或 编辑器进行编码！
 
-重要的事情说三遍。
+> 重要的事情说三遍。
 
 cqbear 的核心组件为 CqBear，定义在 cqbear.bear 中，可使用 `from cqbear.bear import CqBear` 引入。
 
