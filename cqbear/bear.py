@@ -22,7 +22,7 @@ from cqbear.roar import (
     GetStatus, GetVersionInfo, GetVipInfo,
     RestartCqhttpServer, Roar, getLoginInfo
 )
-from cqbear.sound import BaseSound, SoundUnderstander
+from cqbear.sound import Sound, SoundUnderstander
 from cqbear.util import stop_thread
 
 import logging
@@ -59,7 +59,7 @@ class BearEar(object):
         if self.is_listening:
             request_json_data = flask_request.get_json()
             sound = self.__understander.understand(request_json_data)
-            if sound and isinstance(sound, BaseSound):
+            if sound and isinstance(sound, Sound):
                 self.__sound_list.append(sound)
                 # print(f"insert a sound into list \n {sound}")
         return 'OK'
@@ -95,7 +95,7 @@ class BearEar(object):
     def is_listening(self):
         return self.status and self.__think_thread.is_alive()
 
-    def get_sound(self) -> Optional[BaseSound]:
+    def get_sound(self) -> Optional[Sound]:
         if not len(self.__sound_list):
             return None
         sound = self.__sound_list[0]
@@ -169,7 +169,7 @@ class BearBrain(object):
 
     def __init__(self, bear, listen_cb: Callable,
                  speak_cb: Callable,
-                 react_map: Dict[BaseSound, List[Callable]],
+                 react_map: Dict[Sound, List[Callable]],
                  remember_map: Dict[Job, Callable]):
         self.__bear = bear
         self.__listen = listen_cb
@@ -193,7 +193,7 @@ class BearBrain(object):
         while True:
             time.sleep(0.1)
             sound = self.__listen()
-            if sound and type(sound) != BaseSound:
+            if sound and type(sound) != Sound:
                 try:
                     print(f"[GOT] [{type(sound)}] <{sound.type_short}>: {sound.message}")
                 except Exception:
@@ -245,7 +245,7 @@ class BearBrain(object):
             self.__status = self.REST
             print("bear brain stop think")
 
-    def add_react(self, sound: BaseSound, react: Callable):
+    def add_react(self, sound: Sound, react: Callable):
         if sound not in self.__react_map.keys():
             self.__react_map[sound] = [react]
         else:
@@ -345,7 +345,7 @@ class CqBear(object):
     def brain_is_thinking(self):
         return self.__brain.is_thinking
 
-    def add_react(self, sound: BaseSound, react: Callable):
+    def add_react(self, sound: Sound, react: Callable):
         self.__brain.add_react(sound, react)
 
     def add_remember(self, job: Job, react: Optional[Callable] = None):

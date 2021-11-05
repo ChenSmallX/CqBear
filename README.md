@@ -7,11 +7,14 @@ A bear-like bot python module for go-cqhttp.
 > 将机器人称作熊 `Bear`，
 > 将接受到的消息事件称作声音 `Sound`，
 > 将发出的控制消息称作吼叫 `Roar`，
-> 将规范化的符号表达（例如 at、图片等）称为句子 `Sentence`，
+> 将规范化的符号表达(例如 at、图片等)称为句子 `Sentence`，
 > 将事件驱动回调称为反应 `react`，
 > 将计划任务称为记忆 `remember` 和 `job` 等。
 
 ## 环境准备
+
+CqBear 充当的是一个 go-cqhttp 行为的控制器的角色，所以真正的 QQ 是运行在 go-cqhttp 中的，CqBear 只是提供了一个 python 语言的 go-cqhttp API 层。
+所以在使用 CqBear 之前，需要先准备好 go-cqhttp。
 
 ### 下载并运行 go-cqhttp
 
@@ -19,7 +22,7 @@ A bear-like bot python module for go-cqhttp.
 
 - Windows PC
 
-    下载：[go-cqhttp_windows_386.exe(32位系统)](https://github.com/Mrs4s/go-cqhttp/releases/latest/download/go-cqhttp_windows_386.exe) 或 [go-cqhttp_windows_amd64.exe(64位系统)](https://github.com/Mrs4s/go-cqhttp/releases/latest/download/go-cqhttp_windows_amd64.exe)
+    下载：[go-cqhttp_windows_386.exe(32位系统)](https://github.com/Mrs4s/go-cqhttp/releases/latest/download/go-cqhttp_windows_386.exe) 或 [go-cqhttp_windows_amd64.exe(64位系统)](https://github.com/Mrs4s/go-cqhttp/releases/latest/download/go-cqhttp_windows_amd64.exe) (链接均链接到最新的 go-cqhttp 构建件)
 
 - 其他系统环境
 
@@ -55,6 +58,10 @@ A bear-like bot python module for go-cqhttp.
 
 首次运行 go-cqhttp 会自动生成 config.yml 配置文件，修改 config.yml 中必要的配置和与 cqbear 相关的配置后，重启 go-cqhttp 即可。
 
+> windows 端 双击运行
+>
+> linux 端 `./go-cqhttp`(首次运行推荐不带参数运行) 或 `./go-cqhttp faststart`(跳过各项检查，快速启动)
+
 其中必要的配置：
 
 - `account.uin`： QQ 账号
@@ -66,7 +73,7 @@ A bear-like bot python module for go-cqhttp.
 - `servers.http.port`: go-cqhttp 服务监听的端口，可以使用默认的 `5700`，也可以自定义【此项需要在 cqbear 中使用】
 - `servers.http.post.url`: cqbear 或其他接收 go-cqhttp 上报消息的服务端，此处可填写 "127.0.0.1:5701" 或其他地址【此项需要在 cqbear 中使用】
 
-### 快速开始 Quick Start
+### CqBear 快速开始 Quick Start
 
 #### 安装
 
@@ -140,7 +147,7 @@ cqbear 的核心组件为 CqBear，定义在 cqbear.bear 中，可使用 `from c
 
     > 熊
     >
-    > 完整的 QQ 机器熊类，包括了自动监听 go-cqhttp 上报消息、对不同的声音（消息）类型执行对应的反应回调、定时执行记忆（计划）任务等功能。
+    > 完整的 QQ 机器熊类，包括了自动监听 go-cqhttp 上报消息、对不同的声音(消息)类型执行对应的反应回调、定时执行记忆(计划)任务等功能。
 
     最基础的创建熊实例和开始运行：
 
@@ -163,7 +170,7 @@ cqbear 的核心组件为 CqBear，定义在 cqbear.bear 中，可使用 `from c
 
     在 CqBear 实例开始运行后，需要使用 CqBear 实例的 `add_react` 和 `add_remember` 方法动态地添加声音反应和记忆任务。
 
-  - 注册声音（消息）反应
+  - 注册声音(消息)反应
 
     例：
 
@@ -197,7 +204,7 @@ cqbear 的核心组件为 CqBear，定义在 cqbear.bear 中，可使用 `from c
     bear.add_react(NormalGroupMessage, bar)
     ```
 
-  - 注册记忆（计划）任务
+  - 注册记忆(计划)任务
 
     例：
 
@@ -257,11 +264,17 @@ cqbear 的核心组件为 CqBear，定义在 cqbear.bear 中，可使用 `from c
     bear.add_remember(job_a)  # 当没有传入函数作为参数时，需要保证 job_a.runable 为真值
     bear.add_remember(job_b)
     # 当传入的 job_c 没有配置执行函数时，可以给 add_remember 方法加上一个接受 bear 为参数的函数作为入参，add_remember 方法会自动将对应的 bear 实体传入此函数。
-    # 当传入的 job_c 也已经绑定了函数，则 add_remember 的函数入参不生效（不覆盖 job_c 的执行函数）。
+    # 当传入的 job_c 也已经绑定了函数，则 add_remember 的函数入参不生效(不覆盖 job_c 的执行函数)。
     bear.add_remember(job_c, foobar)
     ```
 
-#### 熊身体的其他部分
+#### 声音(消息) cqbear.sound
+
+#### 吼叫(API指令) cqbear.roar
+
+#### 句子(CQ code) cqbear.sentence
+
+#### 熊身体的其他部分(不建议独立使用)
 
 CqBear 中定义了多个组件分别用于执行不同的工作，但在 CqBear 种都进行了二次封装，无法直接通过 CqBear 控制，若需要单独使用其中某项功能，则可以独立定义使用：
 
@@ -269,9 +282,9 @@ CqBear 中定义了多个组件分别用于执行不同的工作，但在 CqBear
 
     > 耳朵：
     >
-    > 顾名思义，是用于听声音（消息）的的。
+    > 顾名思义，是用于听声音(消息)的的。
     >
-    > cqbear 将消息定义为了 N 种声音（`Sound`），可在 `cqbear.sound` 中获得所有声音的定义。
+    > cqbear 将消息定义为了 N 种声音(`Sound`)，可在 `cqbear.sound` 中获得所有声音的定义。
 
     `BearEar` 中使用多线程创建了基于 `Flask` 的 http 服务端。后续有计划将 `Flask` 更换为基于 socket 的 http 服务端。
 
@@ -308,11 +321,11 @@ CqBear 中定义了多个组件分别用于执行不同的工作，但在 CqBear
 
     > 嘴巴：
     >
-    > 熊通过嘴巴说话（向 go-cqhttp 发出消息）。
+    > 熊通过嘴巴说话(向 go-cqhttp 发出消息)。
     >
-    > cqbear 将发出消息定义为了 N 种熊吼（`Roar`），可在 `cqbear.roar` 种获得所有熊吼的定义。
+    > cqbear 将发出消息定义为了 N 种熊吼(`Roar`)，可在 `cqbear.roar` 种获得所有熊吼的定义。
 
-    `BearMouth` 是一个可以将熊吼 Roar 转为 http 请求（`request`）发送到 go-cqhttp，并返回请求的回应（`response`）。
+    `BearMouth` 是一个可以将熊吼 Roar 转为 http 请求(`request`)发送到 go-cqhttp，并返回请求的回应(`response`)。
 
     `BearMouth` 可单独定义实体并用于发送熊吼，例：
 
@@ -358,14 +371,14 @@ CqBear 中定义了多个组件分别用于执行不同的工作，但在 CqBear
     >
     > 脑是熊思考的核心，“对声音做出反应”以及“记忆任务”都是在大脑中进行的。其中“对声音做出反应”的声音是从耳朵中获取的。
 
-    `BearBrain` 会将声音反应（声音类型和回调函数的关系）和记忆任务（计划任务实例和计划任务控制模块）保存起来，在启动 BearBrain 的“思考”机制后，会通过给定的接口去获取声音并执行对应的函数，或检查是否到了执行计划任务的时间要去执行设定好的任务。
+    `BearBrain` 会将声音反应(声音类型和回调函数的关系)和记忆任务(计划任务实例和计划任务控制模块)保存起来，在启动 BearBrain 的“思考”机制后，会通过给定的接口去获取声音并执行对应的函数，或检查是否到了执行计划任务的时间要去执行设定好的任务。
 
     `BearBrain` 可以单独使用，但需要自己定义许多东西。例如：
 
     ```py
     from cqbear.bear import BearBrain
     from cqbear.sound import (
-        BaseSound,
+        Sound,
         NormalGroupMessage,
         FriendPrivateMessage,
         AnonymousGroupMessage
@@ -373,7 +386,7 @@ CqBear 中定义了多个组件分别用于执行不同的工作，但在 CqBear
     from cqbear.remember import Job
     from typing import Optional
 
-    def get_sound() -> Optional[BaseSound]:  # 定义一个用于获取声音的函数 返回 None 的时候 brain 不做操作
+    def get_sound() -> Optional[Sound]:  # 定义一个用于获取声音的函数 返回 None 的时候 brain 不做操作
         ...
 
     react_map = {

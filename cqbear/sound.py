@@ -26,14 +26,14 @@ from typing import List, Optional
 from cqbear.util import allSubclasses
 
 
-class BaseSound(dict):
+class Sound(dict):
     """消息事件基类"""
     FIRST_TYPE = None
     SECOND_TYPE = None
     THIRD_TYPE = None
 
     def __init__(self, data: dict):
-        super(BaseSound, self).__init__(data)
+        super(Sound, self).__init__(data)
 
     @property
     def type_short(self):
@@ -47,7 +47,7 @@ class BaseSound(dict):
         return self.get(sys._getframe().f_code.co_name)
 
 
-class Message(BaseSound):
+class Message(Sound):
     FIRST_TYPE = "message"
 
     def __init__(self, data: dict):
@@ -348,7 +348,7 @@ class NoticeGroupMessage(GroupMessage):
         super(NoticeGroupMessage, self).__init__(data)
 
 
-class Notice(BaseSound):
+class Notice(Sound):
     FIRST_TYPE = "notice"
 
     def __init__(self, data: dict):
@@ -874,7 +874,7 @@ class DeleteEssenceNotice(EssenceNotice):
         super(DeleteEssenceNotice, self).__init__(data)
 
 
-class Request(BaseSound):
+class Request(Sound):
     FIRST_TYPE = "request"
 
     def __init__(self, data: dict):
@@ -956,20 +956,20 @@ class InviteGroupRequest(Request):
 
 class SoundUnderstander:
     _understand_map = {
-        "default": BaseSound
+        "default": Sound
     }
 
     def __init__(self):
-        cls_lst = allSubclasses(BaseSound)
+        cls_lst = allSubclasses(Sound)
         for cls in cls_lst:
-            if cls == BaseSound:
+            if cls == Sound:
                 continue
             key = self._get_key(clas=cls)
             self._understand_map[key] = cls
 
-    def understand(self, data: dict) -> BaseSound:
+    def understand(self, data: dict) -> Sound:
         key = self._get_key(data=data)
-        cls = self._understand_map.get(key, BaseSound)
+        cls = self._understand_map.get(key, Sound)
         return cls(data)
 
     def _get_key(self, data=None, clas=None) -> str:
