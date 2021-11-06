@@ -198,7 +198,10 @@ class BearBrain(object):
                     print(f"[GOT] [{type(sound)}] <{sound.type_short}>: {sound.message}")
                 except Exception:
                     pass
-                react_cb_lst = self.__react_map.get(type(sound))
+                react_cb_lst = []
+                for key in self.__react_map.keys():
+                    if isinstance(sound, key):
+                        react_cb_lst.extend(self.__react_map[key])
                 if react_cb_lst:
                     for cb in react_cb_lst:
                         try:
