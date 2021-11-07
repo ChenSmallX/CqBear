@@ -21,7 +21,7 @@ def read_requirements(filename):
 setup(
     name='cqbear',
     python_requires='>=3.4.0',
-    version="0.3",
+    version="0.4",
     description="A bear-like bot python module for go-cqhttp.",
     long_description=read_file('README.md'),
     long_description_content_type="text/markdown",
