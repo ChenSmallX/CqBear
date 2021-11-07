@@ -480,6 +480,18 @@ class SentenceUnderstander:
         return str_list, [SentenceUnderstander().understand(sentence) for sentence in sentence_list]
 
 
+def doc():
+    for c in allSubclasses(Sentence):
+        print("========================================")
+        print(f"name: {c}")
+        print(f"doc: {c.__doc__}")
+
+        set_methods = [
+            method for method in dir(c) if method.startswith("set_")
+        ]
+        print(f"set method: {set_methods}")
+        print("========================================")
+
 if __name__ == "__main__":
     s = "part1[CQ:at,qq=666][CQ:at,qq=667]part2 [CQ:face,id=12]"
     str_list, sentence_list = SentenceUnderstander.extract_sentence(s)
