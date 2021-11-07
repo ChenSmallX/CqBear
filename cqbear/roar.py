@@ -7,8 +7,9 @@ TODO:
 """
 
 
-from typing import List
-from cqbear.sentence import ForwardSend
+from typing import List, Union
+from cqbear.sentence import ForwardSend, Sentence
+from cqbear.util import allSubclasses
 
 
 class Roar(dict):
@@ -68,7 +69,12 @@ class SendPrivateMessage(Roar):
         self['group_id'] = int(group_id)
         return self
 
-    def set_message(self, message: str):
+    def set_message(self, message: Union[str, Sentence, list]):
+        if isinstance(message, list):
+            list_msg = ""
+            for msg in message:
+                list_msg += str(msg)
+            message = list_msg
         self['message'] = str(message)
         return self
 
@@ -105,7 +111,12 @@ class SendGroupMessage(Roar):
         self['group_id'] = group_id
         return self
 
-    def set_message(self, message: str):
+    def set_message(self, message: Union[str, Sentence, list]):
+        if isinstance(message, list):
+            list_msg = ""
+            for msg in message:
+                list_msg += str(msg)
+            message = list_msg
         self['message'] = str(message)
         return self
 
@@ -132,14 +143,16 @@ class SendGroupForwardMassage(Roar):
         return self
 
     def set_messages(self, messages: List[ForwardSend]):
-        self['messages'] = messages
+        self['messages'] = [
+            msg.to_str() if isinstance(msg, ForwardSend) else msg
+            for msg in messages]
         return self
 
     def add_message(self, message: ForwardSend):
         if self.get("messages"):
-            self['messages'].append(message)
+            self['messages'].append(message.to_str())
         else:
-            self['messages'] = [message]
+            self['messages'] = [message.to_str()]
         return self
 
 
@@ -1616,3 +1629,20 @@ class SetModelShow(Roar):
     def set_model_show(self, model_show: str):
         self['model_show'] = model_show
         return self
+
+
+def doc():
+    for c in allSubclasses(Roar):
+        print("========================================")
+        print(f"name: {c}")
+        print(f"doc: {c.__doc__}")
+
+        set_methods = [
+            method for method in dir(c) if method.startswith("set_")
+        ]
+        print(f"set method: {set_methods}")
+        print("========================================")
+
+
+if __name__ == "__main__":
+    doc()
