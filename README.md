@@ -163,7 +163,7 @@ cqbear 的核心组件为 CqBear，定义在 cqbear.bear 中，可使用 `from c
     bear.start()                # 开始监听声音和执行定时任务
     ```
 
-    可以通过 **装饰器** 注册声音反应和记忆任务，但是所有 **使用装饰器注册的** 声音反应和记忆任务必须定义在创建 CqBear 实例之前。装饰器类型：
+    可以通过 **装饰器** 注册声音反应和记忆任务，但是所有 **使用装饰器注册的** 声音反应和记忆任务必须定义在 **创建 CqBear 实例之前** 。装饰器类型：
 
     1. 注册声音反应：`@CqBear.react(Sound_Type)`
     2. 注册记忆任务：`@CqBear.remember(remember.Job)`
@@ -270,9 +270,121 @@ cqbear 的核心组件为 CqBear，定义在 cqbear.bear 中，可使用 `from c
 
 #### 声音(消息) cqbear.sound
 
+> 声音的基类 `Sound`
+
+CqBear 中产生的声音是从 go-cqhttp 端主动上报到 CqBear 的监听端口中，并由 `SonudUnderstander` 解析并实例化的。可以直接通过 `.` 来访问声音中所带有的参数，例如：
+
+```py
+@CqBear.react(NormalGroupMessage)
+def reply_group(bear: CqBear, msg: NormalGroupMessage):
+    group_id = msg.group_id
+    sender_id = msg.user_id
+    sender_detail = msg.sender
+    message = msg.message
+    raw_message = msg.raw_message  # raw_message 为纯字符串，message 则会是未转换前的消息格式
+    ...
+```
+
+在编码的过程中可以通过有自动补全和提示doc的编码工具进行编码以获得最佳的体验。
+
+获得所有声音类型和说明的方法：
+
+```sh
+$ python
+>>> from cqbear.sound import doc as sound_doc
+>>> sound_doc()
+```
+
+每种声音的详细参数以及描述可以在 [go-cqhttp 的事件文档](https://docs.go-cqhttp.org/event/)中获取。
+
+> 如果发现有未实现的声音，请提交相关 issue 或 pr。
+
 #### 吼叫(API指令) cqbear.roar
 
+> 吼叫的基类 `Roar`
+
+CqBear 中使用的吼叫是对 go-cqhttp api 的一层封装起到更好用的作用，在创建吼叫实例后，可使用实例的 `.set_xxx` 方法对其参数进行设置，例如：
+
+```py
+@CqBear.react(FriendPrivateMessage)
+def reply_friend(bear: CqBear, msg: FriendPrivateMessage):
+    roar = SendPrivateMessage()    # 吼叫
+    roar.set_user_id(msg.user_id)
+    roar.set_message("你好呀~")
+    bear.speak(roar)  # 在 speak 之后，可继续编辑 roar 用于再次发送
+    ...
+```
+
+在编码的过程中可以通过有自动补全和提示doc的编码工具进行编码以获得最佳的体验。
+
+获得所有吼叫类型和说明的方法：
+
+```sh
+$ python
+>>> from cqbear.roar import doc as roar_doc
+>>> roar_doc()
+```
+
+每种吼叫的详细参数以及描述可以在 [go-cqhttp 的 API 文档](https://docs.go-cqhttp.org/api/)中获取。
+
+> 如果发现有未实现的吼叫，请提交相关 issue 或 pr。
+
 #### 句子(CQ code) cqbear.sentence
+
+> 句子的基类 `Sentence`
+
+CqBear 中将 CoolQ 中的 CQCode 概念称作句子，用于表示消息中中的各种元素，例如 at(`At`)，回复(`Reply`)，图片(`Image`)，表情(`Face`) 等。句子可以被发出也可以被收到，所以关于句子的使用方法会稍微多一些。
+
+- 创建句子实例并设置参数。句子中也是需要有参数来丰富的，例如 at 句子需要有被 at 对象的 qq 号码，必要时还需要设置 at 时展示的文字等。设置参数时，可以使用实例的 `.set_xxx` 方法对参数进行设置，以及可以将创建的句子实体转换成，例：
+
+    ```py
+    from cqbear.sentence import At, Reply, Image
+    at = At().set_user_id(123456)
+    reply = Reply().set_message_id(-1588745453)
+    image = Image().set_file_name("a.jpg").set_utl("https://xxx.xxx/xxx/a.jpg")
+
+    print(at.to_str())
+    print(str(reply))
+    ```
+
+- 从消息的 raw_message 中提取句子列表。CqBear 中内置了对句子的解析和识别功能，提供方便的代码开发流程。例：
+
+    ```py
+    from cqbear.sentence import SentenceUnderstander, At
+
+    @CqBear.react(FriendPrivateMessage)
+    def reply_friend(bear: CqBear, msg: FriendPrivateMessage):
+        str_list, sentence_list = SentenceUnderstander.extract_sentence(msg.raw_message)
+        for sentence in sentence_list:
+            if isinstance(sentence, At):
+                ...
+    ```
+
+- 检查消息中是否包含了某特定句子，例：
+
+    ```py
+    from cqbear.sentence import SentenceUnderstander, At
+    from cqbear.sound import NormalGroupMessage
+
+    @CqBear.react(NormalGroupMessage)
+    def reply_friend(bear: CqBear, msg: NormalGroupMessage):
+        if At().set_user_id(bear.qq).has_me(msg.raw_message):
+            ...
+    ```
+
+在编码的过程中可以通过有自动补全和提示doc的编码工具进行编码以获得最佳的体验。
+
+获得所有句子类型和说明的方法：
+
+```sh
+$ python
+>>> from cqbear.sentence import doc as sentence_doc
+>>> sentence_doc()
+```
+
+每种吼叫的详细参数以及描述可以在 [go-cqhttp 的 CQcode 文档](https://docs.go-cqhttp.org/cqcode/)中获取。
+
+> 如果发现有未实现的句子，请提交相关 issue 或 pr。
 
 #### 熊身体的其他部分(不建议独立使用)
 
