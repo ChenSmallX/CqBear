@@ -9,13 +9,13 @@ from typing import Union
 from cqbear.util import allSubclasses
 
 
-class CqCode(dict):
-    """CqCode 基类"""
+class Sentence(dict):
+    """Sentence 基类"""
     _type = ""
 
     def __init__(self, data=None):
         if not self._type:
-            raise NotImplementedError("Should use subclass of CqCode")
+            raise NotImplementedError("Should use subclass of Sentence")
         if data:
             assert type(data) == dict
             self.update(data)
@@ -33,22 +33,22 @@ class CqCode(dict):
         return str(self)
 
     def has_me(self, msg: str):
-        """返回列表，列表包含消息中和当前Cqcode相匹配的cqcode
+        """返回列表，列表包含消息中和当前sentence相匹配的sentence
 
         - 匹配规则：
 
-            类型相同，且当前CqCode中设置了的属性在传入CqCode中相同
+            类型相同，且当前Sentence中设置了的属性在传入Sentence中相同
 
             例如：[CQ:at,qq=123] 可以匹配 [CQ:at,qq=123,name=hello]，反之不匹配
 
         Return:
-            list[CqCode]
+            list[Sentence]
         """
         ret = []
-        _, cqcode_list = CqCodeUnderstander.extract_sentence(msg)
-        for cqcode in cqcode_list:
-            if self == cqcode:
-                ret.append(cqcode)
+        _, sentence_list = SentenceUnderstander.extract_sentence(msg)
+        for sentence in sentence_list:
+            if self == sentence:
+                ret.append(sentence)
         return ret
 
     def __eq__(self, o) -> bool:
@@ -64,7 +64,7 @@ class CqCode(dict):
         return True
 
 
-class Face(CqCode):
+class Face(Sentence):
     """QQ 表情"""
     _type = "face"
 
@@ -78,7 +78,7 @@ class Face(CqCode):
 # TODO: 短视频 type==video
 
 
-class At(CqCode):
+class At(Sentence):
     """@某人"""
     _type = "at"
 
@@ -93,7 +93,7 @@ class At(CqCode):
         return self
 
 
-class ShareLink(CqCode):
+class ShareLink(Sentence):
     """链接分享"""
     _type = "share"
 
@@ -118,7 +118,7 @@ class ShareLink(CqCode):
         return self
 
 
-class SharePlatformMusic(CqCode):
+class SharePlatformMusic(Sentence):
     """音乐分享：三大平台平台"""
     _type = "music"
 
@@ -136,7 +136,7 @@ class SharePlatformMusic(CqCode):
         return self
 
 
-class ShareCustomMusic(CqCode):
+class ShareCustomMusic(Sentence):
     """音乐分享：自定义链接"""
     _type = "music"
 
@@ -170,7 +170,7 @@ class ShareCustomMusic(CqCode):
         return self
 
 
-class Image(CqCode):
+class Image(Sentence):
     """图片"""
     _type = "image"
 
@@ -223,7 +223,7 @@ class Image(CqCode):
         return self
 
 
-class Reply(CqCode):
+class Reply(Sentence):
     """回复"""
     _type = "reply"
 
@@ -268,7 +268,7 @@ class Reply(CqCode):
 # TODO: 红包 redbag
 
 
-class Poke(CqCode):
+class Poke(Sentence):
     """戳一戳"""
     _type = "poke"
 
@@ -284,7 +284,7 @@ Chuo1Chuo = Poke
 # TODO: 礼物 gift
 
 
-class ForwardRecive(CqCode):
+class ForwardRecive(Sentence):
     """合并转发（收）
 
     需要通过 `cqbear.roar.GetForwardMessage` 获取转发的具体内容"""
@@ -297,7 +297,7 @@ class ForwardRecive(CqCode):
         return self
 
 
-class ForwardSend(CqCode):
+class ForwardSend(Sentence):
     """合并转发（发）
 
     使用 `cqbear.roar.SendGroupForwardMessage` 类承接此类实例
@@ -342,7 +342,7 @@ class ForwardSend(CqCode):
         return json.dumps(dict(self))
 
 
-class Xml(CqCode):
+class Xml(Sentence):
     """XML 消息"""
     _type = "xml"
 
@@ -357,7 +357,7 @@ class Xml(CqCode):
         return self
 
 
-class Json(CqCode):
+class Json(Sentence):
     """JSON 消息"""
     _type = "json"
 
@@ -389,7 +389,7 @@ class Json(CqCode):
 # TODO: cardimage
 
 
-class Text2Voice(CqCode):
+class Text2Voice(Sentence):
     """文本转语音
 
     通过TX的TTS接口, 采用的音源与登录账号的性别有关"""
@@ -401,24 +401,24 @@ class Text2Voice(CqCode):
         return self
 
 
-class CqCodeUnderstander:
+class SentenceUnderstander:
     _understand_map = {}
 
     def __init__(self) -> None:
-        cq_code_list = allSubclasses(CqCode)
+        cq_code_list = allSubclasses(Sentence)
         for cq_code in cq_code_list:
-            # 此处包含 "": CqCode
+            # 此处包含 "": Sentence
             self._understand_map[cq_code._type] = cq_code
 
     @staticmethod
-    def parse_str_cqcode(str_cqcode: str):
+    def parse_str_sentence(str_sentence: str):
         ret = {
             "CQ": "",
             "data": {}
         }
-        if str_cqcode.startswith("[CQ:") and str_cqcode.endswith("]"):
-            str_cqcode = str_cqcode[1:-1]  # 不用 strip 是为了防止末尾存在 ...]]] 的情况
-            args = str_cqcode.split(',')
+        if str_sentence.startswith("[CQ:") and str_sentence.endswith("]"):
+            str_sentence = str_sentence[1:-1]  # 不用 strip 是为了防止末尾存在 ...]]] 的情况
+            args = str_sentence.split(',')
 
             cq = args.pop(0)
             cq = cq.split(":")
@@ -429,23 +429,23 @@ class CqCodeUnderstander:
                 ret['data'][t_arg[0]] = t_arg[1]
         return ret
 
-    def understand(self, str_cqcode: str):
-        cqcode_dict = self.parse_str_cqcode(str_cqcode)
-        if cqcode_dict:
-            cqcode = self._understand_map.get(cqcode_dict.get('CQ'))
-            if cqcode and type(cqcode) != CqCode:
-                return cqcode(cqcode_dict['data'])
+    def understand(self, str_sentence: str):
+        sentence_dict = self.parse_str_sentence(str_sentence)
+        if sentence_dict:
+            sentence = self._understand_map.get(sentence_dict.get('CQ'))
+            if sentence and type(sentence) != Sentence:
+                return sentence(sentence_dict['data'])
 
     @staticmethod
     def extract_sentence(raw_msg: str):
         str_list = []
-        cqcode_list = []
+        sentence_list = []
 
         left_point = 0
         right_point = -1
         index = 0
 
-        seek_in_cqcode = False
+        seek_in_sentence = False
         bracket_level = 0
 
         while index < len(raw_msg):
@@ -453,38 +453,38 @@ class CqCodeUnderstander:
                 tmp_s = raw_msg[left_point: right_point]
                 str_list.append(tmp_s)
                 if tmp_s.startswith("[CQ:") and tmp_s.endswith("]"):
-                    cqcode_list.append(tmp_s)
+                    sentence_list.append(tmp_s)
                 left_point = right_point
 
-            if not seek_in_cqcode:
+            if not seek_in_sentence:
                 if raw_msg[index:index+4] == "[CQ:":
                     right_point = index
-                    seek_in_cqcode = True
+                    seek_in_sentence = True
                     bracket_level += 1
-            elif seek_in_cqcode:
+            elif seek_in_sentence:
                 if raw_msg[index] == "[":
                     bracket_level += 1
                 elif raw_msg[index] == "]":
                     bracket_level -= 1
                 if bracket_level == 0:
                     right_point = index + 1
-                    seek_in_cqcode = False
+                    seek_in_sentence = False
             index += 1
 
         if right_point != index - 1:
             tmp_s = raw_msg[left_point: index]
             str_list.append(tmp_s)
             if tmp_s.startswith("[CQ:") and tmp_s.endswith("]"):
-                cqcode_list.append(tmp_s)
+                sentence_list.append(tmp_s)
 
-        return str_list, [CqCodeUnderstander().understand(cqcode) for cqcode in cqcode_list]
+        return str_list, [SentenceUnderstander().understand(sentence) for sentence in sentence_list]
 
 
 if __name__ == "__main__":
     s = "part1[CQ:at,qq=666][CQ:at,qq=667]part2 [CQ:face,id=12]"
-    str_list, cqcode_list = CqCodeUnderstander.extract_sentence(s)
+    str_list, sentence_list = SentenceUnderstander.extract_sentence(s)
     print(f"str_list   : {str_list}")
-    print(f"cqcode_list: {cqcode_list}")
+    print(f"sentence_list: {sentence_list}")
 
     print(At().set_user_id(666) == At().set_user_id(666).set_name("haha"))
     print(At().set_user_id(666).set_name("haha") == At().set_user_id(666))
