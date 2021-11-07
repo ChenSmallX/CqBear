@@ -88,7 +88,14 @@ class PrivateMessageSender(dict):
 
 
 class PrivateMessage(Message):
-    """私聊消息"""
+    """私聊消息
+
+    可使用更详细的
+        FriendPrivateMessage,
+        GroupPrivateMessage,
+        GroupSelfPrivateMessage,
+        OtherPrivateMessage
+    """
     SECOND_TYPE = "private"
 
     def __init__(self, data: dict):
@@ -264,7 +271,13 @@ class GroupMessageSender(dict):
 
 
 class GroupMessage(Message):
-    """群消息"""
+    """群消息
+
+    可以使用更为详细的
+        NormalGroupMessage，
+        AnonymousGroupMessage，
+        NoticeGroupMessage
+    """
     SECOND_TYPE = "group"
 
     def __init__(self, data: dict):
@@ -410,7 +423,12 @@ class GroupUploadNotice(Notice):
 
 
 class GroupAdminNotice(Notice):
-    """群管理员变动"""
+    """群管理员变动
+
+    可使用更加精确的
+        SetGroupAdminNotice,
+        UnsetGroupAdminNotice
+    """
     SECOND_TYPE = "group_admin"
 
     def __init__(self, data: dict):
@@ -444,7 +462,13 @@ class UnsetGroupAdminNotice(GroupAdminNotice):
 
 
 class GroupDecreaseNotice(Notice):
-    """群成员减少"""
+    """群成员减少
+
+    可以使用更精确的
+        LeaveGroupDecreaseNotice,
+        KickGroupDecreaseNotice,
+        KickMeGroupDecreaseNotice
+    """
     SECOND_TYPE = "group_decrease"
 
     def __init__(self, data: dict):
@@ -491,7 +515,12 @@ class KickMeGroupDecreaseNotice(GroupDecreaseNotice):
 
 
 class GroupIncreaseNotice(Notice):
-    """群成员增加"""
+    """群成员增加
+
+    可使用更精确的
+        ApproveGroupIncreaseNotice，
+        InviteGroupIncreaseNotice
+    """
     SECOND_TYPE = "group_increase"
 
     def __init__(self, data: dict):
@@ -530,7 +559,12 @@ class InviteGroupIncreaseNotice(GroupIncreaseNotice):
 
 
 class GroupBanNotice(Notice):
-    """群禁言事件"""
+    """群禁言事件
+
+    可使用更精确的
+        EnableGroupBanNotice，
+        DisableGroupBanNotice
+    """
     SECOND_TYPE = "group_ban"
 
     def __init__(self, data: dict):
@@ -564,20 +598,20 @@ class GroupBanNotice(Notice):
         return False
 
 
-class EnableGroupBanNotice(Notice):
+class EnableGroupBanNotice(GroupBanNotice):
     """群禁言: 设置禁言"""
     THIRD_TYPE = "ban"
 
     def __init__(self, data: dict):
-        super(GroupBanNotice, self).__init__(data)
+        super(EnableGroupBanNotice, self).__init__(data)
 
 
-class DisableGroupBanNotice(Notice):
+class DisableGroupBanNotice(GroupBanNotice):
     """群禁言: 解除禁言"""
     THIRD_TYPE = "lift_ban"
 
     def __init__(self, data: dict):
-        super(GroupBanNotice, self).__init__(data)
+        super(DisableGroupBanNotice, self).__init__(data)
 
 
 class FriendAddNotice(Notice):
@@ -836,7 +870,12 @@ class ClientStatusNotice(Notice):
 
 
 class EssenceNotice(Notice):
-    """精华消息"""
+    """精华消息
+
+    可使用更精确的
+        AddEssenceNotice,
+        DeleteEssenceNotice
+    """
     SECOND_TYPE = "essence"
 
     def __init__(self, data: dict):
@@ -1002,10 +1041,11 @@ class SoundUnderstander:
         return key
 
 
-def main():
-    understander = SoundUnderstander()
-    print(understander._understand_map)
+def doc():
+    for c in allSubclasses(Sound):
+        print(f"class: {c}")
+        print(f"doc: {c.__doc__}\n")
 
 
 if __name__ == "__main__":
-    main()
+    doc()
