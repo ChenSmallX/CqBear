@@ -64,14 +64,30 @@ CqBear 充当的是一个 go-cqhttp 行为的控制器的角色，所以真正�
 
 其中必要的配置：
 
-- `account.uin`： QQ 账号
-- `account.password`：密码，若使用扫码登录则无需填写这项
+```yml
+account: # 账号相关
+  uin: 6666666666 # QQ账号
+  password: '' # 密码为空时使用扫码登录
+```
 
 其中与 cqbear 相关的配置如下：
 
-- `servers.http.host`: go-cqhttp 服务监听的地址，若和 cqbear 运行在同一台机器中，则填写 "127.0.0.1"，若不同则填写 "0.0.0.0"【此项需要在 cqbear 中使用】
-- `servers.http.port`: go-cqhttp 服务监听的端口，可以使用默认的 `5700`，也可以自定义【此项需要在 cqbear 中使用】
-- `servers.http.post.url`: cqbear 或其他接收 go-cqhttp 上报消息的服务端，此处可填写 "127.0.0.1:5701" 或其他地址【此项需要在 cqbear 中使用】
+```yml
+servers:
+  - http:
+      # 服务端监听地址
+      # go-cqhttp 服务监听的地址，若和 cqbear 运行在同一台机器中，则填写 "127.0.0.1"，若不在同一台机器中则填写 "0.0.0.0"【此项需要在 cqbear 中使用】
+      host: 127.0.0.1
+      # 服务端监听端口
+      # go-cqhttp 服务监听的端口，可以使用默认的 `5700`，也可以自定义【此项需要在 cqbear 中使用】
+      port: 5700
+      # 反向HTTP POST地址列表
+      post:
+      # cqbear 或其他接收 go-cqhttp 上报消息的服务端，此处可填写 "127.0.0.1:5701" 或其他地址【此项需要在 cqbear 中使用】
+      - url: 127.0.0.1:5701 # 地址
+```
+
+go-cqhttp 需要通过一定的方法运行在系统中，windows 总保持命令行窗口存在即可，linux 可以只用 nohup 或者 screen 或者 tmux 等方法使其在后台运行。
 
 ### CqBear 快速开始 Quick Start
 
